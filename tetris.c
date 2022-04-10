@@ -209,14 +209,6 @@ void drawGameover(int cx, int cy) {
 
 void drawField(int cx, int cy) {
   for (int y = 0; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
-
-    // TEST
-    char buf[3];
-    snprintf(buf, 12, "%d", y);
-    attrset(COLOR_PAIR(2));
-    mvaddstr(cy + y * HEIGHT_RATIO, cx + -2 * WIDTH_RATIO, buf);
-    // TEST
-
     for (int x = 0; x < FIELD_WIDTH; x++) {
       if (FIELD[y][x] == 0) {
         attrset(COLOR_PAIR(1));
