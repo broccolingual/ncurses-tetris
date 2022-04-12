@@ -10,38 +10,45 @@
 #include "tetris.h"
 
 BLOCK BLOCKS[BLOCK_MAX] = {
-  // BLOCK_I
-  {
-    {{0, 0}, {0, 1}, {0, -1}, {0, -2}}
+  // BLOCK_I | CYAN
+  { 
+    1,
+    {{0, 0}, {1, 0}, {-1, 0}, {-2, 0}}
   },
 
-  // BLOCK_O
-  {
+  // BLOCK_O | YELLOW
+  { 
+    2,
     {{0, 0}, {0, 1}, {1, 1}, {1, 0}}
   },
 
-  // BLOCK_S
+  // BLOCK_S | GREEN
   { 
+    3,
     {{0, 0}, {0, 1}, {-1, 1}, {1, 0}}
   },
 
-  // BLOCK_Z
-  {
+  // BLOCK_Z | RED
+  { 
+    4,
     {{0, 0}, {0, 1}, {1, 1}, {-1, 0}}
   },
 
-  // BLOCK_J
-  {
+  // BLOCK_J | BLUE
+  { 
+    5,
     {{0, 0}, {0, -1}, {1, 0}, {2, 0}}
   },
 
-  // BLOCK_L
-  {
+  // BLOCK_L | WHITE
+  { 
+    6,
     {{0, 0}, {0, -1}, {-1, 0}, {-2, 0}}
   },
 
-  // BLOCK_T
-  {
+  // BLOCK_T | MAGENTA
+  { 
+    7,
     {{0, 0}, {0, -1}, {1, 0}, {-1, 0}}
   }
 };
@@ -58,15 +65,16 @@ int main(void) {
   nodelay(stdscr, TRUE); // getchをノンブロッキングにする
 
   start_color();
-  init_pair(1, COLOR_WHITE, COLOR_WHITE); // WHITE
-  init_pair(2, COLOR_WHITE, COLOR_BLACK); // For String
-  init_pair(3, COLOR_CYAN, COLOR_CYAN); // CYAN
+  init_pair(1, COLOR_CYAN, COLOR_CYAN); // CYAN
+  init_pair(2, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
+  init_pair(3, COLOR_GREEN, COLOR_GREEN); // GREEN
   init_pair(4, COLOR_RED, COLOR_RED); // RED
-  init_pair(5, COLOR_BLACK, COLOR_BLACK); // BLACK
-  init_pair(6, COLOR_BLUE, COLOR_BLUE); // BLUE
-  init_pair(7, COLOR_GREEN, COLOR_GREEN); // GREEN
-  init_pair(8, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
-  init_pair(9, COLOR_MAGENTA, COLOR_MAGENTA); // MAGENTA
+  init_pair(5, COLOR_BLUE, COLOR_BLUE); // BLUE
+  init_pair(6, COLOR_BLACK, COLOR_BLACK); // BLACK
+  init_pair(7, COLOR_MAGENTA, COLOR_MAGENTA); // MAGENTA
+  init_pair(8, COLOR_WHITE, COLOR_WHITE); // WHITE
+  init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
+  init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
@@ -79,7 +87,7 @@ int main(void) {
 
   makeField();
   setCurrentBlock();
-  updateBlock(2);
+  updateBlock(target.type.color);
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
   drawInst(cx, cy);
@@ -100,7 +108,7 @@ int main(void) {
 
       erase(); // 画面消去
       refreshField();
-      updateBlock(2);
+      updateBlock(target.type.color);
       drawField(cx, cy);
       drawScore(cx, cy, maxScore);
       drawInst(cx, cy);
@@ -132,13 +140,13 @@ int main(void) {
     // 接触判定
     if (changeBlockState()) {
       refreshField();
-      updateBlock(1);
+      updateBlock(target.type.color + 10);
       searchAlign();
       setCurrentBlock();
-      updateBlock(2);
+      updateBlock(target.type.color);
     } else {
       refreshField();
-      updateBlock(2);
+      updateBlock(target.type.color);
     }
 
     drawField(cx, cy);
@@ -190,21 +198,25 @@ void updateHighestScore() {
 }
 
 void makeField() {
-  for (int y = 0; y < FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT_MARGIN - 1; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      FIELD[y][x] = 3;
+      FIELD[y][x] = MARGIN;
     }
+  }
+
+  for (int x = 0; x < FIELD_WIDTH; x++) {
+    FIELD[FIELD_HEIGHT_MARGIN - 1][x] = BORDER_C;
   }
 
   for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      FIELD[y][x] = 0;
+      FIELD[y][x] = VOID;
     }
   }
 }
 
 void drawInst(int cx, int cy) {
-  attrset(COLOR_PAIR(2));
+  attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
   mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
   mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
@@ -217,7 +229,7 @@ void drawScore(int cx, int cy, int maxScore) {
   char highestScore[256];
   char point[256]; 
 
-  attrset(COLOR_PAIR(2));
+  attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy - 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
   sprintf(highestScore, "%d", maxScore);
   mvaddstr(cy - 2, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
@@ -227,38 +239,48 @@ void drawScore(int cx, int cy, int maxScore) {
 }
 
 void drawGameover(int cx, int cy) {
-  attrset(COLOR_PAIR(2));
+  attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx, "G A M E     O V E R ");
 }
 
 void drawField(int cx, int cy) {
   for (int y = 0; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      if (FIELD[y][x] == 0) {
-        attrset(COLOR_PAIR(1));
-      } else if (FIELD[y][x] == 1) {
-        attrset(COLOR_PAIR(4));
-      } else if (FIELD[y][x] == 2) {
-        attrset(COLOR_PAIR(3));
-      } else if (FIELD[y][x] == 3) {
-        attrset(COLOR_PAIR(5));
+      int colorCode;
+
+      if (FIELD[y][x] > 10) {
+        colorCode = FIELD[y][x] - 10;
+      } else if (FIELD[y][x] == MARGIN) {
+        colorCode = VOID;
+      } else {
+        colorCode = FIELD[y][x];
       }
-      mvaddstr(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
+      
+      attrset(COLOR_PAIR(colorCode));
+      if (colorCode != BORDER_C) {
+        mvaddstr(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
+      } else {
+        mvaddstr(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "__");
+      }
     }
   }
 }
 
 void refreshField() {
-  for (int y = 0; y < FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT_MARGIN - 1; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      FIELD[y][x] = 3;
+      FIELD[y][x] = MARGIN;
     }
+  }
+
+  for (int x = 0; x < FIELD_WIDTH; x++) {
+    FIELD[FIELD_HEIGHT_MARGIN - 1][x] = BORDER_C;
   }
 
   for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      if (FIELD[y][x] == 2) {
-        FIELD[y][x] = 0;
+      if (BLOCK_I <= FIELD[y][x] && FIELD[y][x] <= BLOCK_T) {
+        FIELD[y][x] = VOID;
       }
     }
   }
@@ -272,7 +294,7 @@ bool canMove(int dx, int dy) {
     int nx = cx + block.p[i].x + dx;
     int ny = cy + block.p[i].y + dy;
 
-    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && FIELD[ny][nx] != 1)) {
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
       return false;
     }
   }
@@ -305,7 +327,7 @@ bool canRotate() {
     int nx = cx - block.p[i].y;
     int ny = cy + block.p[i].x;
 
-    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && FIELD[ny][nx] != 1)) {
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
       return false;
     }
   }
@@ -315,6 +337,8 @@ bool canRotate() {
 BLOCK rotateBlock() {
   BLOCK before = target.type;
   BLOCK after;
+  after.color = before.color;
+
   if (canRotate()) {
     for (int i = 0; i < 4; i++) {
       int bx = before.p[i].x;
@@ -356,7 +380,7 @@ bool changeBlockState() {
     int nx = cx + block.p[i].x + 0;
     int ny = cy + block.p[i].y + 1;
 
-    if (FIELD[ny][nx] == 1 || ny == FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) {
+    if (FIELD[ny][nx] > 10 || ny == FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) {
       return true;
     }
   }
@@ -368,7 +392,7 @@ void searchAlign() {
 
   for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      if (FIELD[y][x] == 0) break;
+      if (FIELD[y][x] == VOID) break;
       if (x == FIELD_WIDTH - 1) {
         lineCount++;
         deleteAlign(y);
@@ -396,7 +420,7 @@ void searchAlign() {
 
 void deleteAlign(int dy) {
   for (int x = 0; x < FIELD_WIDTH; x++) {
-    FIELD[dy][x] = 0;
+    FIELD[dy][x] = VOID;
   }
 
   int TMP_FIELD[dy][FIELD_WIDTH];
@@ -416,7 +440,7 @@ void deleteAlign(int dy) {
 
 bool checkGameover() {
   for (int x = 0; x < FIELD_WIDTH; x++) {
-    if (FIELD[FIELD_HEIGHT_MARGIN][x] == 1) return true;
+    if (FIELD[FIELD_HEIGHT_MARGIN][x] > 10) return true;
   }
   return false;
 }
