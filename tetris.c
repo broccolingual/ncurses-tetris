@@ -58,11 +58,15 @@ int main(void) {
   nodelay(stdscr, TRUE); // getchをノンブロッキングにする
 
   start_color();
-  init_pair(1, COLOR_WHITE, COLOR_WHITE);
-  init_pair(2, COLOR_WHITE, COLOR_BLACK);
-  init_pair(3, COLOR_CYAN, COLOR_CYAN);
-  init_pair(4, COLOR_RED, COLOR_RED);
-  init_pair(5, COLOR_BLACK, COLOR_BLACK);
+  init_pair(1, COLOR_WHITE, COLOR_WHITE); // WHITE
+  init_pair(2, COLOR_WHITE, COLOR_BLACK); // For String
+  init_pair(3, COLOR_CYAN, COLOR_CYAN); // CYAN
+  init_pair(4, COLOR_RED, COLOR_RED); // RED
+  init_pair(5, COLOR_BLACK, COLOR_BLACK); // BLACK
+  init_pair(6, COLOR_BLUE, COLOR_BLUE); // BLUE
+  init_pair(7, COLOR_GREEN, COLOR_GREEN); // GREEN
+  init_pair(8, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
+  init_pair(9, COLOR_MAGENTA, COLOR_MAGENTA); // MAGENTA
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
