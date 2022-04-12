@@ -103,7 +103,10 @@ int main(void) {
     }
 
     key = getch();
-    if (key == 'q') break;
+    if (key == 'q') {
+      updateHighestScore();
+      break;
+    }
     switch (key) {
       case 'a':
         moveLEFT();
@@ -126,7 +129,7 @@ int main(void) {
       refreshField();
       updateBlock(1);
       searchAlign();
-      setCurrentBlock(); // 新ブロック生成
+      setCurrentBlock();
       updateBlock(2);
     } else {
       refreshField();
@@ -147,13 +150,36 @@ int main(void) {
 
     while (1) {
       key = getch();
-      if (key == 'q') break;
+      if (key == 'q') {
+        updateHighestScore();
+        break;
+      }
     }
   }
 
 	endwin(); // スクリーンの終了
 
   return 0;
+}
+
+void updateHighestScore() {
+  char lastPoint[256];
+  char buf[256];
+  int maxPoint = 0;
+
+  FILE *fp = fopen("point.txt", "r");
+  if (fp == NULL) return;
+  if (fgets(lastPoint, 256, fp) != NULL) {
+    maxPoint = atoi(lastPoint);
+  }
+  fclose(fp);
+
+  if (maxPoint < POINT) {
+    FILE *fp = fopen("point.txt", "w");
+    if (fp == NULL) return;
+    fprintf(fp, "%d\n", POINT);
+    fclose(fp);
+  }
 }
 
 void makeField() {
