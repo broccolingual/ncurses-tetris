@@ -217,12 +217,12 @@ void makeField() {
 
 void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
-  mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
-  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
-  mvaddstr(cy + 8, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
+  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
@@ -230,12 +230,12 @@ void drawScore(int cx, int cy, int maxScore) {
   char point[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy - 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
+  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
   sprintf(highestScore, "%d", maxScore);
-  mvaddstr(cy - 2, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
+  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
   mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
   sprintf(point, "%d", POINT);
-  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, point);
+  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, point);
 }
 
 void drawGameover(int cx, int cy) {
