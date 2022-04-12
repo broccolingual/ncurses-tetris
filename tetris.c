@@ -68,6 +68,8 @@ BLOCK BLOCKS[BLOCK_MAX] = {
 };
 
 void makeField();
+void drawInst(int cx, int cy);
+void drawScore(int cx, int cy);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();
@@ -86,6 +88,7 @@ void moveRIGHT();
 void moveLEFT();
 bool checkGameover();
 
+int POINT = 0;
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH];
 TARGET target;
 
@@ -115,6 +118,8 @@ int main(void) {
   setCurrentBlock();
   updateBlock(2);
   drawField(cx, cy);
+  drawScore(cx, cy);
+  drawInst(cx, cy);
   
   clock_t lastClock = clock();
   while (1) {
@@ -128,11 +133,14 @@ int main(void) {
     if (nowClock >= lastClock + (INTERVAL * CLOCKS_PER_SEC)) {
       lastClock = nowClock;
       moveDOWN();
+      POINT++;
 
       erase(); // 画面消去
       refreshField();
       updateBlock(2);
       drawField(cx, cy);
+      drawScore(cx, cy);
+      drawInst(cx, cy);
       refresh(); // 画面再描画
     }
 
@@ -162,12 +170,14 @@ int main(void) {
       searchAlign();
       setCurrentBlock(); // 新ブロック生成
       updateBlock(2);
-      drawField(cx, cy);
     } else {
       refreshField();
       updateBlock(2);
-      drawField(cx, cy);
     }
+
+    drawField(cx, cy);
+    drawScore(cx, cy);
+    drawInst(cx, cy);
 
     refresh(); // 画面再描画
   }
@@ -200,6 +210,24 @@ void makeField() {
       FIELD[y][x] = 0;
     }
   }
+}
+
+void drawInst(int cx, int cy) {
+  attrset(COLOR_PAIR(2));
+  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
+  mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
+  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
+  mvaddstr(cy + 8, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
+}
+
+void drawScore(int cx, int cy) {
+  attrset(COLOR_PAIR(2));
+  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
+  char buf[10];
+  sprintf(buf, "%d", POINT);
+  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, buf);
 }
 
 void drawGameover(int cx, int cy) {
@@ -340,13 +368,33 @@ bool changeBlockState() {
 }
 
 void searchAlign() {
+  int lineCount = 0;
+
   for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       if (FIELD[y][x] == 0) break;
       if (x == FIELD_WIDTH - 1) {
+        lineCount++;
         deleteAlign(y);
       }
     }
+  }
+
+  switch (lineCount) {
+    case 1:
+      POINT += 40;
+      break;
+    case 2:
+      POINT += 100;
+      break;
+    case 3:
+      POINT += 300;
+      break;
+    case 4:
+      POINT += 1200;
+      break;
+    default:
+      break;
   }
 }
 
