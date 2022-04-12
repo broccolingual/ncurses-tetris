@@ -21,10 +21,11 @@ typedef struct {
   POSITION p;
 } TARGET;
 
+int loadHighestScore();
 void updateHighestScore();
 void makeField();
 void drawInst(int cx, int cy);
-void drawScore(int cx, int cy);
+void drawScore(int cx, int cy, int maxScore);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();

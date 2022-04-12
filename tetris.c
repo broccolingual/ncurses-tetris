@@ -69,6 +69,7 @@ int main(void) {
 	cy = (h - (FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
+  int maxScore = loadHighestScore();
   int key;
   bool isGameover = false;
 
@@ -76,7 +77,7 @@ int main(void) {
   setCurrentBlock();
   updateBlock(2);
   drawField(cx, cy);
-  drawScore(cx, cy);
+  drawScore(cx, cy, maxScore);
   drawInst(cx, cy);
   
   clock_t lastClock = clock();
@@ -97,7 +98,7 @@ int main(void) {
       refreshField();
       updateBlock(2);
       drawField(cx, cy);
-      drawScore(cx, cy);
+      drawScore(cx, cy, maxScore);
       drawInst(cx, cy);
       refresh(); // 画面再描画
     }
@@ -137,7 +138,7 @@ int main(void) {
     }
 
     drawField(cx, cy);
-    drawScore(cx, cy);
+    drawScore(cx, cy, maxScore);
     drawInst(cx, cy);
 
     refresh(); // 画面再描画
@@ -162,19 +163,21 @@ int main(void) {
   return 0;
 }
 
-void updateHighestScore() {
+int loadHighestScore() {
   char lastPoint[256];
-  char buf[256];
   int maxPoint = 0;
 
   FILE *fp = fopen("point.txt", "r");
-  if (fp == NULL) return;
+  if (fp == NULL) return 0;
   if (fgets(lastPoint, 256, fp) != NULL) {
     maxPoint = atoi(lastPoint);
   }
   fclose(fp);
+  return maxPoint;
+}
 
-  if (maxPoint < POINT) {
+void updateHighestScore() {
+  if (loadHighestScore() < POINT) {
     FILE *fp = fopen("point.txt", "w");
     if (fp == NULL) return;
     fprintf(fp, "%d\n", POINT);
@@ -206,12 +209,17 @@ void drawInst(int cx, int cy) {
   mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
 }
 
-void drawScore(int cx, int cy) {
+void drawScore(int cx, int cy, int maxScore) {
+  char highestScore[256];
+  char point[256]; 
+
   attrset(COLOR_PAIR(2));
+  mvaddstr(cy - 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
+  sprintf(highestScore, "%d", maxScore);
+  mvaddstr(cy - 2, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
   mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
-  char buf[10];
-  sprintf(buf, "%d", POINT);
-  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, buf);
+  sprintf(point, "%d", POINT);
+  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, point);
 }
 
 void drawGameover(int cx, int cy) {
