@@ -233,7 +233,7 @@ void drawScore(int cx, int cy, int maxScore) {
   mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
   sprintf(highestScore, "%d", maxScore);
   mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
-  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
+  mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
   sprintf(point, "%d", POINT);
   mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, point);
 }
