@@ -7,6 +7,7 @@
 #define HEIGHT_RATIO 1
 
 #define MARGIN -1
+#define BLOCK_NULL 0
 #define BLOCK_I 1
 #define BLOCK_O 2
 #define BLOCK_S 3
@@ -42,17 +43,17 @@ void drawScore(int cx, int cy, int maxScore);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();
-BLOCK rotateBlock();
+BLOCK rotateBlock(TARGET *tp);
 BLOCK selectRandomBlock();
 void setBlock(TARGET *tp);
 void updateBlock(int state);
-bool canMove(int dx, int dy);
-bool canRotate();
-bool changeBlockState();
+bool canMove(int dx, int dy, TARGET *tp);
+bool canRotate(TARGET *tp);
+bool changeBlockState(TARGET *tp);
 void searchAlign();
 void deleteAlign(int dy);
-void moveUP();
-void moveDOWN();
-void moveRIGHT();
-void moveLEFT();
+void moveUP(TARGET *tp);
+void moveDOWN(TARGET *tp);
+void moveRIGHT(TARGET *tp);
+void moveLEFT(TARGET *tp);
 bool checkGameover();

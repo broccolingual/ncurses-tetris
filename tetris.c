@@ -10,7 +10,12 @@
 #include "tetris.h"
 
 // テトリミノの定義
-BLOCK BLOCKS[BLOCK_MAX] = {
+BLOCK BLOCKS[BLOCK_MAX + 1] = {
+  // BLOCK_NULL
+  {
+    0,
+    {{0, 0}, {0, 0}, {0, 0}, {0, 0}}
+  },
   // BLOCK_I | CYAN
   { 
     1,
@@ -112,7 +117,7 @@ int main(void) {
     clock_t nowClock = clock();
     if (nowClock >= lastClock + (INTERVAL * CLOCKS_PER_SEC)) {
       lastClock = nowClock;
-      moveDOWN();
+      moveDOWN(&target);
       SCORE++;
 
       DROP_COUNT++;
@@ -141,23 +146,23 @@ int main(void) {
     // テトリミノの操作
     switch (key) {
       case 'a':
-        moveLEFT();
+        moveLEFT(&target);
         break;
       case 's':
-        moveDOWN();
+        moveDOWN(&target);
         break;
       case 'd':
-        moveRIGHT();
+        moveRIGHT(&target);
         break;
       case 'w':
-        target.type = rotateBlock();
+        target.type = rotateBlock(&target);
         break;
     }
 
     erase(); // 画面消去
 
     // 接触判定
-    if (changeBlockState()) {
+    if (changeBlockState(&target)) {
       refreshField();
       updateBlock(target.type.color + 10);
       searchAlign();
@@ -322,13 +327,10 @@ void refreshField() {
   }
 }
 
-bool canMove(int dx, int dy) {
-  int cx = target.p.x; int cy = target.p.y;
-  BLOCK block = target.type;
-
+bool canMove(int dx, int dy, TARGET *tp) {
   for (int i = 0; i < 4; i++) {
-    int nx = cx + block.p[i].x + dx;
-    int ny = cy + block.p[i].y + dy;
+    int nx = tp->p.x + tp->type.p[i].x + dx;
+    int ny = tp->p.y + tp->type.p[i].y + dy;
 
     if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
       return false;
@@ -337,31 +339,28 @@ bool canMove(int dx, int dy) {
   return true;
 }
 
-void moveDOWN() {
-  if (canMove(0, 1)) {
-    target.p.y++;
+void moveDOWN(TARGET *tp) {
+  if (canMove(0, 1, tp)) {
+    tp->p.y++;
   }
 }
 
-void moveRIGHT() {
-  if (canMove(1, 0)) {
-    target.p.x++;
+void moveRIGHT(TARGET *tp) {
+  if (canMove(1, 0, tp)) {
+    tp->p.x++;
   }
 }
 
-void moveLEFT() {
-  if (canMove(-1, 0)) {
-    target.p.x--;
+void moveLEFT(TARGET *tp) {
+  if (canMove(-1, 0, tp)) {
+    tp->p.x--;
   }
 }
 
-bool canRotate() {
-  int cx = target.p.x; int cy = target.p.y;
-  BLOCK block = target.type;
-
+bool canRotate(TARGET *tp) {
   for (int i = 0; i < 4; i++) {
-    int nx = cx - block.p[i].y;
-    int ny = cy + block.p[i].x;
+    int nx = tp->p.x - tp->type.p[i].y;
+    int ny = tp->p.y + tp->type.p[i].x;
 
     if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
       return false;
@@ -370,27 +369,25 @@ bool canRotate() {
   return true;
 }
 
-BLOCK rotateBlock() {
-  BLOCK before = target.type;
-  BLOCK after;
-  after.color = before.color;
+BLOCK rotateBlock(TARGET *tp) {
+  BLOCK after = tp->type;
 
-  if (canRotate()) {
+  if (canRotate(tp)) {
     for (int i = 0; i < 4; i++) {
-      int bx = before.p[i].x;
-      int by = before.p[i].y;
+      int bx = tp->type.p[i].x;
+      int by = tp->type.p[i].y;
 
       after.p[i].x = -by;
       after.p[i].y = bx;
     }
     return after;
   }
-  return before;
+  return tp->type;
 }
 
 BLOCK selectRandomBlock() {
   srand((unsigned int)time(NULL));
-  return BLOCKS[rand() % BLOCK_MAX];
+  return BLOCKS[rand() % BLOCK_MAX + 1];
 }
 
 void setBlock(TARGET *tp) {
@@ -408,13 +405,10 @@ void updateBlock(int state) {
   }
 }
 
-bool changeBlockState() {
-  int cx = target.p.x; int cy = target.p.y;
-  BLOCK block = target.type;
-
+bool changeBlockState(TARGET *tp) {
   for (int i = 0; i < 4; i++) {
-    int nx = cx + block.p[i].x + 0;
-    int ny = cy + block.p[i].y + 1;
+    int nx = tp->p.x + tp->type.p[i].x + 0;
+    int ny = tp->p.y + tp->type.p[i].y + 1;
 
     if (FIELD[ny][nx] > 10 || ny == FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) {
       return true;
@@ -448,8 +442,6 @@ void searchAlign() {
       break;
     case 4:
       SCORE += 1200;
-      break;
-    default:
       break;
   }
 }
