@@ -59,6 +59,7 @@ int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.5; // 秒/1ブロック落下
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 TARGET target; // 現在操作しているブロックのデータ
+TARGET next; // 次に操作するブロックのデータ
 
 int main(void) {
   initscr(); // 端末の初期化
@@ -90,11 +91,13 @@ int main(void) {
   bool isGameover = false;
 
   makeField(); // フィールドの初期化
-  setCurrentBlock(); // 操作ブロックを設定
+  setBlock(&target); // 操作ブロックを設定
+  setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color);
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
   drawInst(cx, cy);
+  drawNext(cx, cy, &next);
   
   clock_t lastClock = clock();
   while (1) {
@@ -123,6 +126,7 @@ int main(void) {
       drawField(cx, cy);
       drawScore(cx, cy, maxScore);
       drawInst(cx, cy);
+      drawNext(cx, cy, &next);
       refresh(); // 画面再描画
     }
 
@@ -157,7 +161,8 @@ int main(void) {
       refreshField();
       updateBlock(target.type.color + 10);
       searchAlign();
-      setCurrentBlock();
+      target = next;
+      setBlock(&next);
       updateBlock(target.type.color);
     } else {
       refreshField();
@@ -167,6 +172,7 @@ int main(void) {
     drawField(cx, cy);
     drawScore(cx, cy, maxScore);
     drawInst(cx, cy);
+    drawNext(cx, cy, &next);
 
     refresh(); // 画面再描画
   }
@@ -226,6 +232,20 @@ void makeField() {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       FIELD[y][x] = VOID;
     }
+  }
+}
+
+void drawNext(int cx, int cy, TARGET *np) {
+  attrset(COLOR_PAIR(STRING_C));
+  mvaddstr(cy, cx - 10, "- NEXT -");
+
+  if (np->type.color != 6) {
+    attrset(COLOR_PAIR(np->type.color));
+  } else {
+    attrset(COLOR_PAIR(VOID));
+  }
+  for (int i = 0; i < 4; i++) {
+    mvaddstr(cy + 3 + np->type.p[i].y, cx - 8 + np->type.p[i].x * WIDTH_RATIO, "  ");
   }
 }
 
@@ -373,10 +393,10 @@ BLOCK selectRandomBlock() {
   return BLOCKS[rand() % BLOCK_MAX];
 }
 
-void setCurrentBlock() {
-  target.type = selectRandomBlock();
-  target.p.x = (FIELD_WIDTH / 2) - 1;
-  target.p.y = 2;
+void setBlock(TARGET *tp) {
+  tp->type = selectRandomBlock();
+  tp->p.x = (FIELD_WIDTH / 2) - 1;
+  tp->p.y = 2;
 }
 
 void updateBlock(int state) {

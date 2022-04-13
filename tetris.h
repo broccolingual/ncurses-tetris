@@ -36,6 +36,7 @@ typedef struct {
 int loadHighestScore();
 void updateHighestScore();
 void makeField();
+void drawNext(int cx, int cy, TARGET *np);
 void drawInst(int cx, int cy);
 void drawScore(int cx, int cy, int maxScore);
 void drawGameover(int cx, int cy);
@@ -43,7 +44,7 @@ void drawField(int cx, int cy);
 void refreshField();
 BLOCK rotateBlock();
 BLOCK selectRandomBlock();
-void setCurrentBlock();
+void setBlock(TARGET *tp);
 void updateBlock(int state);
 bool canMove(int dx, int dy);
 bool canRotate();
