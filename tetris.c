@@ -53,7 +53,7 @@ BLOCK BLOCKS[BLOCK_MAX] = {
   }
 };
 
-int POINT = 0;
+int SCORE = 0;
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH];
 TARGET target;
 
@@ -104,7 +104,7 @@ int main(void) {
     if (nowClock >= lastClock + (INTERVAL * CLOCKS_PER_SEC)) {
       lastClock = nowClock;
       moveDOWN();
-      POINT++;
+      SCORE++;
 
       erase(); // 画面消去
       refreshField();
@@ -176,23 +176,23 @@ int main(void) {
 }
 
 int loadHighestScore() {
-  char lastPoint[256];
-  int maxPoint = 0;
+  char lastScore[256];
+  int maxScore = 0;
 
-  FILE *fp = fopen("point.txt", "r");
+  FILE *fp = fopen("score.txt", "r");
   if (fp == NULL) return 0;
-  if (fgets(lastPoint, 256, fp) != NULL) {
-    maxPoint = atoi(lastPoint);
+  if (fgets(lastScore, 256, fp) != NULL) {
+    maxScore = atoi(lastScore);
   }
   fclose(fp);
-  return maxPoint;
+  return maxScore;
 }
 
 void updateHighestScore() {
-  if (loadHighestScore() < POINT) {
-    FILE *fp = fopen("point.txt", "w");
+  if (loadHighestScore() < SCORE) {
+    FILE *fp = fopen("score.txt", "w");
     if (fp == NULL) return;
-    fprintf(fp, "%d\n", POINT);
+    fprintf(fp, "%d\n", SCORE);
     fclose(fp);
   }
 }
@@ -227,15 +227,15 @@ void drawInst(int cx, int cy) {
 
 void drawScore(int cx, int cy, int maxScore) {
   char highestScore[256];
-  char point[256]; 
+  char score[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
   sprintf(highestScore, "%d", maxScore);
   mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
   mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
-  sprintf(point, "%d", POINT);
-  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, point);
+  sprintf(score, "%d", SCORE);
+  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, score);
 }
 
 void drawGameover(int cx, int cy) {
@@ -402,16 +402,16 @@ void searchAlign() {
 
   switch (lineCount) {
     case 1:
-      POINT += 40;
+      SCORE += 40;
       break;
     case 2:
-      POINT += 100;
+      SCORE += 100;
       break;
     case 3:
-      POINT += 300;
+      SCORE += 300;
       break;
     case 4:
-      POINT += 1200;
+      SCORE += 1200;
       break;
     default:
       break;
