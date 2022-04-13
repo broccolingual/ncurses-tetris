@@ -9,6 +9,7 @@
 
 #include "tetris.h"
 
+// テトリミノの定義
 BLOCK BLOCKS[BLOCK_MAX] = {
   // BLOCK_I | CYAN
   { 
@@ -54,18 +55,19 @@ BLOCK BLOCKS[BLOCK_MAX] = {
 };
 
 int SCORE = 0;
-int DROP_COUNT = 0;
-int INTERVAL 0.5
-int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH];
-TARGET target;
+int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
+double INTERVAL = 0.5; // 秒/1ブロック落下
+int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
+TARGET target; // 現在操作しているブロックのデータ
 
 int main(void) {
   initscr(); // 端末の初期化
   curs_set(0); // カーソルを非表示
   noecho(); // 入力した文字を非表示
   cbreak(); // Enter不要の入力モード
-  nodelay(stdscr, TRUE); // getchをノンブロッキングにする
+  nodelay(stdscr, TRUE); // getchのノンブロッキング化
 
+  // 色の指定
   start_color();
   init_pair(1, COLOR_CYAN, COLOR_CYAN); // CYAN
   init_pair(2, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
@@ -87,8 +89,8 @@ int main(void) {
   int key;
   bool isGameover = false;
 
-  makeField();
-  setCurrentBlock();
+  makeField(); // フィールドの初期化
+  setCurrentBlock(); // 操作ブロックを設定
   updateBlock(target.type.color);
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
@@ -96,13 +98,15 @@ int main(void) {
   
   clock_t lastClock = clock();
   while (1) {
+
+    // ゲームオーバー判定
     if (checkGameover()) {
       isGameover = true;
       break;
     }
 
+    // 落下処理
     clock_t nowClock = clock();
-
     if (nowClock >= lastClock + (INTERVAL * CLOCKS_PER_SEC)) {
       lastClock = nowClock;
       moveDOWN();
@@ -122,11 +126,15 @@ int main(void) {
       refresh(); // 画面再描画
     }
 
-    key = getch();
+    key = getch(); // キー入力
+
+    // ゲームの終了
     if (key == 'q') {
       updateHighestScore();
       break;
     }
+
+    // テトリミノの操作
     switch (key) {
       case 'a':
         moveLEFT();
@@ -169,8 +177,7 @@ int main(void) {
     refresh(); // 画面再描画
 
     while (1) {
-      key = getch();
-      if (key == 'q') {
+      if (getch() == 'q') {
         updateHighestScore();
         break;
       }
