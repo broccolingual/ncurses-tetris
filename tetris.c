@@ -107,7 +107,7 @@ int main(void) {
       lastClock = nowClock;
       moveDOWN();
       SCORE++;
-      
+
       DROP_COUNT++;
       if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
         INTERVAL -= 0.05;
@@ -230,6 +230,8 @@ void drawInst(int cx, int cy) {
   mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
   mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
   mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
+  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
+  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
