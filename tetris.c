@@ -54,6 +54,8 @@ BLOCK BLOCKS[BLOCK_MAX] = {
 };
 
 int SCORE = 0;
+int DROP_COUNT = 0;
+int INTERVAL 0.5
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH];
 TARGET target;
 
@@ -105,6 +107,11 @@ int main(void) {
       lastClock = nowClock;
       moveDOWN();
       SCORE++;
+      
+      DROP_COUNT++;
+      if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
+        INTERVAL -= 0.05;
+      }
 
       erase(); // 画面消去
       refreshField();

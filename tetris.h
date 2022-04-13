@@ -2,7 +2,6 @@
 #define FIELD_HEIGHT  20
 #define FIELD_HEIGHT_MARGIN 4
 #define BLOCK_MAX 7
-#define INTERVAL 0.5
 
 #define WIDTH_RATIO 2
 #define HEIGHT_RATIO 1
