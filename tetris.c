@@ -313,6 +313,7 @@ void drawScore(int cx, int cy, int maxScore) {
 void drawGameover(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx, "G A M E     O V E R ");
+  mvaddstr(cy + 6, cx + 6, "Q : EXIT");
 }
 
 void drawField(int cx, int cy) {
