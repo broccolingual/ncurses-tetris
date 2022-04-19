@@ -63,8 +63,33 @@ int SCORE = 0;
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.5; // 秒/1ブロック落下
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
+
+int BLOCK_LIST[7] = {1, 2, 3, 4, 5, 6, 7};
+int RANDOM_BLOCK_INDEX = 0;
+
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
+
+void shuffleBlocklist() {
+  srand((unsigned int)time(NULL));
+
+  for(int i = 0; i < BLOCK_MAX; i++) {
+    int j = rand() % BLOCK_MAX;
+    int t = BLOCK_LIST[i];
+    BLOCK_LIST[i] = BLOCK_LIST[j];
+    BLOCK_LIST[j] = t;
+  }
+}
+
+BLOCK selectRandomBlock() {
+  if (RANDOM_BLOCK_INDEX < BLOCK_MAX) {
+    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
+  } else {
+    shuffleBlocklist();
+    RANDOM_BLOCK_INDEX = 0;
+    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
+  }
+}
 
 void setWindow() {
   curs_set(0); // カーソルを非表示
@@ -415,11 +440,6 @@ BLOCK rotateBlock(TARGET *tp) {
     return after;
   }
   return tp->type;
-}
-
-BLOCK selectRandomBlock() {
-  srand((unsigned int)time(NULL));
-  return BLOCKS[rand() % BLOCK_MAX + 1];
 }
 
 void setBlock(TARGET *tp) {

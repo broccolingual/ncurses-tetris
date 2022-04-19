@@ -34,6 +34,8 @@ typedef struct {
   POSITION p;
 } TARGET;
 
+void shuffleBlocklist();
+BLOCK selectRandomBlock();
 void setWindow();
 void setColors();
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
@@ -48,7 +50,6 @@ void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();
 BLOCK rotateBlock(TARGET *tp);
-BLOCK selectRandomBlock();
 void setBlock(TARGET *tp);
 void updateBlock(int state);
 bool canMove(int dx, int dy, TARGET *tp);
