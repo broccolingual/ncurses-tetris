@@ -61,7 +61,7 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
 
 int SCORE = 0;
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
-double INTERVAL = 0.5; // 秒/1ブロック落下
+double INTERVAL = 0.4; // 秒/1ブロック落下
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 
 int BLOCK_LIST[7] = {1, 2, 3, 4, 5, 6, 7};
@@ -159,7 +159,7 @@ int main(void) {
       SCORE++;
 
       DROP_COUNT++;
-      if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
+      if (DROP_COUNT % 360 == 0 && INTERVAL >= 0.2) {
         INTERVAL -= 0.05;
       }
 
