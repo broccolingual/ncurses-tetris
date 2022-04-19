@@ -87,11 +87,12 @@ void setColors() {
   init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
 }
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *np) {
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
   drawInst(cx, cy);
   drawNext(cx, cy, np);
+  drawElapsedTime(cx, cy, timeStart);
 }
 
 int main(void) {
@@ -108,12 +109,13 @@ int main(void) {
   bool isGameover = false;
   bool dropDelay = false;
   clock_t lastDelayClock;
+  time_t elapsedTimeStart = time(NULL);
 
   makeField(); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color);
-  drawGameWindow(cx, cy, maxScore, &next);
+  drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
   
   clock_t lastClock = clock();
   while (1) {
@@ -139,7 +141,7 @@ int main(void) {
       erase(); // 画面消去
       refreshField();
       updateBlock(target.type.color);
-      drawGameWindow(cx, cy, maxScore, &next);
+      drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
       refresh(); // 画面再描画
     }
 
@@ -191,7 +193,7 @@ int main(void) {
 
     updateBlock(target.type.color);
 
-    drawGameWindow(cx, cy, maxScore, &next);
+    drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
 
     refresh(); // 画面再描画
   }
@@ -252,6 +254,21 @@ void makeField() {
       FIELD[y][x] = VOID;
     }
   }
+}
+
+void drawElapsedTime(int cx, int cy, time_t timeStart) {
+  char strTimeMin[8];
+  char strTimeSec[8];
+
+  attrset(COLOR_PAIR(STRING_C));
+
+  sprintf(strTimeMin, "%02d", ((int) difftime(time(NULL), timeStart)) / 60);
+  sprintf(strTimeSec, "%02d", ((int) difftime(time(NULL), timeStart)) % 60);
+  strcat(strTimeMin, ":");
+  strcat(strTimeMin, strTimeSec);
+
+  mvaddstr(cy + 6, cx - 10, "- TIME -");
+  mvaddstr(cy + 8, cx - 9, strTimeMin);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
