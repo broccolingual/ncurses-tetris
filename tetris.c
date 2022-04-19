@@ -94,6 +94,8 @@ int main(void) {
   int maxScore = loadHighestScore();
   int key;
   bool isGameover = false;
+  bool dropDelay = false;
+  clock_t lastDelayClock;
 
   makeField(); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
@@ -161,18 +163,27 @@ int main(void) {
 
     erase(); // 画面消去
 
+    refreshField();
+
     // 接触判定
     if (changeBlockState(&target)) {
-      refreshField();
-      updateBlock(target.type.color + 10);
-      searchAlign();
-      target = next;
-      setBlock(&next);
-      updateBlock(target.type.color);
-    } else {
-      refreshField();
-      updateBlock(target.type.color);
+      if (!dropDelay) {
+        dropDelay = true;
+        lastDelayClock = clock();
+      }
+
+      clock_t nowDelayClock = clock();
+      if (nowDelayClock >= lastDelayClock + (INTERVAL * CLOCKS_PER_SEC)) {
+        dropDelay = false;
+
+        updateBlock(target.type.color + 10);
+        searchAlign();
+        target = next;
+        setBlock(&next);
+      }
     }
+
+    updateBlock(target.type.color);
 
     drawField(cx, cy);
     drawScore(cx, cy, maxScore);
