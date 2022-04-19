@@ -34,6 +34,9 @@ typedef struct {
   POSITION p;
 } TARGET;
 
+void setWindow();
+void setColors();
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *next);
 int loadHighestScore();
 void updateHighestScore();
 void makeField();

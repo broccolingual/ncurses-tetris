@@ -66,14 +66,14 @@ int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフ�
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
 
-int main(void) {
-  initscr(); // 端末の初期化
+void setWindow() {
   curs_set(0); // カーソルを非表示
   noecho(); // 入力した文字を非表示
   cbreak(); // Enter不要の入力モード
   nodelay(stdscr, TRUE); // getchのノンブロッキング化
+}
 
-  // 色の指定
+void setColors() {
   start_color();
   init_pair(1, COLOR_CYAN, COLOR_CYAN); // CYAN
   init_pair(2, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
@@ -85,6 +85,19 @@ int main(void) {
   init_pair(8, COLOR_WHITE, COLOR_WHITE); // WHITE
   init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
   init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
+}
+
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *np) {
+  drawField(cx, cy);
+  drawScore(cx, cy, maxScore);
+  drawInst(cx, cy);
+  drawNext(cx, cy, np);
+}
+
+int main(void) {
+  initscr(); // 端末の初期化
+  setWindow(); // windowの初期設定
+  setColors(); // 色の設定
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
@@ -92,7 +105,6 @@ int main(void) {
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
   int maxScore = loadHighestScore();
-  int key;
   bool isGameover = false;
   bool dropDelay = false;
   clock_t lastDelayClock;
@@ -101,10 +113,7 @@ int main(void) {
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color);
-  drawField(cx, cy);
-  drawScore(cx, cy, maxScore);
-  drawInst(cx, cy);
-  drawNext(cx, cy, &next);
+  drawGameWindow(cx, cy, maxScore, &next);
   
   clock_t lastClock = clock();
   while (1) {
@@ -130,14 +139,11 @@ int main(void) {
       erase(); // 画面消去
       refreshField();
       updateBlock(target.type.color);
-      drawField(cx, cy);
-      drawScore(cx, cy, maxScore);
-      drawInst(cx, cy);
-      drawNext(cx, cy, &next);
+      drawGameWindow(cx, cy, maxScore, &next);
       refresh(); // 画面再描画
     }
 
-    key = getch(); // キー入力
+    int key = getch(); // キー入力
 
     // ゲームの終了
     if (key == 'q') {
@@ -185,10 +191,7 @@ int main(void) {
 
     updateBlock(target.type.color);
 
-    drawField(cx, cy);
-    drawScore(cx, cy, maxScore);
-    drawInst(cx, cy);
-    drawNext(cx, cy, &next);
+    drawGameWindow(cx, cy, maxScore, &next);
 
     refresh(); // 画面再描画
   }
