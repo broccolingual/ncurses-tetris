@@ -99,6 +99,7 @@ void setWindow() {
   noecho(); // 入力した文字を非表示
   cbreak(); // Enter不要の入力モード
   nodelay(stdscr, TRUE); // getchのノンブロッキング化
+  keypad(stdscr, TRUE); // カーソルキーの有効化
 }
 
 void setColors() {
@@ -177,29 +178,29 @@ int main(void) {
     int key = getch(); // キー入力
 
     // ゲームの終了
-    if (key == 27) {
+    if (key == 'q') {
       updateHighestScore();
       break;
     }
 
     // テトリミノの操作
     switch (key) {
-      case 'a':
+      case KEY_LEFT:
         moveLEFT(&target);
         break;
-      case 's':
+      case KEY_DOWN:
         moveDOWN(&target);
         break;
-      case 'd':
+      case KEY_RIGHT:
         moveRIGHT(&target);
         break;
-      case 'e':
+      case 'x':
         target.type = rotateBlockRight(&target);
         break;
-      case 'q':
+      case 'z':
         target.type = rotateBlockLeft(&target);
         break;
-      case 'w':
+      case 'c':
         if (SKIP_COUNT > 0) {
           SKIP_COUNT--;
           target = next;
@@ -243,7 +244,7 @@ int main(void) {
     refresh(); // 画面再描画
 
     while (1) {
-      if (getch() == 27) {
+      if (getch() == 'q') {
         updateHighestScore();
         break;
       }
@@ -339,13 +340,13 @@ void drawNext(int cx, int cy, TARGET *np) {
 void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "E : ROTATE RIGHT");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : ROTATE LEFT");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : SKIP");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
-  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
-  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "ESC : EXIT");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "X : ROTATE RIGHT");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Z : ROTATE LEFT");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "C : SKIP");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "LEFT : MOVE LEFT");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "RIGHT: MOVE RIGHT");
+  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "DOWN : SOFT DROP");
+  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
   mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
   mvaddstr(cy + 18, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
@@ -366,7 +367,7 @@ void drawScore(int cx, int cy, int maxScore) {
 void drawGameover(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx, "G A M E     O V E R ");
-  mvaddstr(cy + 6, cx + 6, "ESC : EXIT");
+  mvaddstr(cy + 6, cx + 6, "Q : EXIT");
 }
 
 void drawField(int cx, int cy) {
