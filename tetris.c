@@ -61,19 +61,48 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
 
 int SCORE = 0;
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
-double INTERVAL = 0.5; // 秒/1ブロック落下
+double INTERVAL = 0.4; // 秒/1ブロック落下
+double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
+
+int BLOCK_LIST[7] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
+int RANDOM_BLOCK_INDEX = 0;
+
+int SKIP_COUNT = 5;
+
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
 
-int main(void) {
-  initscr(); // 端末の初期化
+void shuffleBlocklist() {
+  srand((unsigned int)time(NULL));
+
+  for(int i = 0; i < BLOCK_MAX; i++) {
+    int j = rand() % BLOCK_MAX;
+    int t = BLOCK_LIST[i];
+    BLOCK_LIST[i] = BLOCK_LIST[j];
+    BLOCK_LIST[j] = t;
+  }
+}
+
+BLOCK selectRandomBlock() {
+  if (RANDOM_BLOCK_INDEX < BLOCK_MAX) {
+    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
+  } else {
+    shuffleBlocklist();
+    RANDOM_BLOCK_INDEX = 0;
+    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
+  }
+}
+
+void setWindow() {
   curs_set(0); // カーソルを非表示
   noecho(); // 入力した文字を非表示
   cbreak(); // Enter不要の入力モード
   nodelay(stdscr, TRUE); // getchのノンブロッキング化
+  keypad(stdscr, TRUE); // カーソルキーの有効化
+}
 
-  // 色の指定
+void setColors() {
   start_color();
   init_pair(1, COLOR_CYAN, COLOR_CYAN); // CYAN
   init_pair(2, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
@@ -85,6 +114,22 @@ int main(void) {
   init_pair(8, COLOR_WHITE, COLOR_WHITE); // WHITE
   init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
   init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
+  init_pair(20, COLOR_CYAN, COLOR_BLACK); // For String (Strong)
+}
+
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
+  drawField(cx, cy);
+  drawScore(cx, cy, maxScore);
+  drawInst(cx, cy);
+  drawNext(cx, cy, np);
+  drawElapsedTime(cx, cy, timeStart);
+  drawSkip(cx, cy);
+}
+
+int main(void) {
+  initscr(); // 端末の初期化
+  setWindow(); // windowの初期設定
+  setColors(); // 色の設定
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
@@ -92,17 +137,16 @@ int main(void) {
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
   int maxScore = loadHighestScore();
-  int key;
   bool isGameover = false;
+  bool dropDelay = false;
+  clock_t lastDelayClock;
+  time_t elapsedTimeStart = time(NULL);
 
   makeField(); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color);
-  drawField(cx, cy);
-  drawScore(cx, cy, maxScore);
-  drawInst(cx, cy);
-  drawNext(cx, cy, &next);
+  drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
   
   clock_t lastClock = clock();
   while (1) {
@@ -121,21 +165,18 @@ int main(void) {
       SCORE++;
 
       DROP_COUNT++;
-      if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
+      if (DROP_COUNT % 360 == 0 && INTERVAL >= 0.2) {
         INTERVAL -= 0.05;
       }
 
       erase(); // 画面消去
       refreshField();
       updateBlock(target.type.color);
-      drawField(cx, cy);
-      drawScore(cx, cy, maxScore);
-      drawInst(cx, cy);
-      drawNext(cx, cy, &next);
+      drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
       refresh(); // 画面再描画
     }
 
-    key = getch(); // キー入力
+    int key = getch(); // キー入力
 
     // ゲームの終了
     if (key == 'q') {
@@ -145,39 +186,55 @@ int main(void) {
 
     // テトリミノの操作
     switch (key) {
-      case 'a':
+      case KEY_LEFT:
         moveLEFT(&target);
         break;
-      case 's':
+      case KEY_DOWN:
         moveDOWN(&target);
         break;
-      case 'd':
+      case KEY_RIGHT:
         moveRIGHT(&target);
         break;
-      case 'w':
-        target.type = rotateBlock(&target);
+      case 'x':
+        target.type = rotateBlockRight(&target);
+        break;
+      case 'z':
+        target.type = rotateBlockLeft(&target);
+        break;
+      case 'c':
+        if (SKIP_COUNT > 0) {
+          SKIP_COUNT--;
+          target = next;
+          setBlock(&next);
+        }
         break;
     }
 
     erase(); // 画面消去
 
+    refreshField();
+
     // 接触判定
     if (changeBlockState(&target)) {
-      refreshField();
-      updateBlock(target.type.color + 10);
-      searchAlign();
-      target = next;
-      setBlock(&next);
-      updateBlock(target.type.color);
-    } else {
-      refreshField();
-      updateBlock(target.type.color);
+      if (!dropDelay) {
+        dropDelay = true;
+        lastDelayClock = clock();
+      }
+
+      clock_t nowDelayClock = clock();
+      if (nowDelayClock >= lastDelayClock + (GRACE_AFTER_FALLING * CLOCKS_PER_SEC)) {
+        dropDelay = false;
+
+        updateBlock(target.type.color + 10);
+        searchAlign();
+        target = next;
+        setBlock(&next);
+      }
     }
 
-    drawField(cx, cy);
-    drawScore(cx, cy, maxScore);
-    drawInst(cx, cy);
-    drawNext(cx, cy, &next);
+    updateBlock(target.type.color);
+
+    drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
 
     refresh(); // 画面再描画
   }
@@ -240,9 +297,38 @@ void makeField() {
   }
 }
 
+void drawSkip(int cx, int cy) {
+  char skipLeft[16];
+
+  attrset(COLOR_PAIR(STRING_C));
+
+  sprintf(skipLeft, "%d", SKIP_COUNT);
+  strcat(skipLeft, " / 5");
+
+  mvaddstr(cy + 9, cx - 12, "| SKIP:");
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 10, cx - 10, skipLeft);
+}
+
+void drawElapsedTime(int cx, int cy, time_t timeStart) {
+  char strTimeMin[8];
+  char strTimeSec[8];
+
+  attrset(COLOR_PAIR(STRING_C));
+
+  sprintf(strTimeMin, "%02d", ((int) difftime(time(NULL), timeStart)) / 60);
+  sprintf(strTimeSec, "%02d", ((int) difftime(time(NULL), timeStart)) % 60);
+  strcat(strTimeMin, ":");
+  strcat(strTimeMin, strTimeSec);
+
+  mvaddstr(cy + 6, cx - 12, "| TIME:");
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 7, cx - 10, strTimeMin);
+}
+
 void drawNext(int cx, int cy, TARGET *np) {
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy, cx - 10, "- NEXT -");
+  mvaddstr(cy, cx - 12, "- NEXT -");
 
   if (np->type.color != 6) {
     attrset(COLOR_PAIR(np->type.color));
@@ -250,20 +336,23 @@ void drawNext(int cx, int cy, TARGET *np) {
     attrset(COLOR_PAIR(VOID));
   }
   for (int i = 0; i < 4; i++) {
-    mvaddstr(cy + 3 + np->type.p[i].y, cx - 8 + np->type.p[i].x * WIDTH_RATIO, "  ");
+    mvaddstr(cy + 3 + np->type.p[i].y, cx - 10 + np->type.p[i].x * WIDTH_RATIO, "  ");
   }
 }
 
 void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
-  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
-  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
+
+  mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
+  mvaddstr(cy + 8, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X     : ROTATE RIGHT");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z     : ROTATE LEFT");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
+  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
+  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
+  mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
@@ -271,17 +360,22 @@ void drawScore(int cx, int cy, int maxScore) {
   char score[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- HIGHEST SCORE -");
+
+  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| HIGHEST SCORE:");
   sprintf(highestScore, "%d", maxScore);
-  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, highestScore);
-  mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- SCORE -");
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, highestScore);
+  attrset(COLOR_PAIR(STRING_C));
+  mvaddstr(cy + 2, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SCORE:");
   sprintf(score, "%d", SCORE);
-  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, score);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, score);
 }
 
 void drawGameover(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx, "G A M E     O V E R ");
+  mvaddstr(cy + 6, cx + 6, "Q : EXIT");
 }
 
 void drawField(int cx, int cy) {
@@ -357,7 +451,7 @@ void moveLEFT(TARGET *tp) {
   }
 }
 
-bool canRotate(TARGET *tp) {
+bool canRotateRight(TARGET *tp) {
   for (int i = 0; i < 4; i++) {
     int nx = tp->p.x - tp->type.p[i].y;
     int ny = tp->p.y + tp->type.p[i].x;
@@ -369,10 +463,22 @@ bool canRotate(TARGET *tp) {
   return true;
 }
 
-BLOCK rotateBlock(TARGET *tp) {
+bool canRotateLeft(TARGET *tp) {
+  for (int i = 0; i < 4; i++) {
+    int nx = tp->p.x + tp->type.p[i].y;
+    int ny = tp->p.y - tp->type.p[i].x;
+
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+BLOCK rotateBlockRight(TARGET *tp) {
   BLOCK after = tp->type;
 
-  if (canRotate(tp)) {
+  if (canRotateRight(tp)) {
     for (int i = 0; i < 4; i++) {
       int bx = tp->type.p[i].x;
       int by = tp->type.p[i].y;
@@ -385,9 +491,20 @@ BLOCK rotateBlock(TARGET *tp) {
   return tp->type;
 }
 
-BLOCK selectRandomBlock() {
-  srand((unsigned int)time(NULL));
-  return BLOCKS[rand() % BLOCK_MAX + 1];
+BLOCK rotateBlockLeft(TARGET *tp) {
+  BLOCK after = tp->type;
+
+  if (canRotateLeft(tp)) {
+    for (int i = 0; i < 4; i++) {
+      int bx = tp->type.p[i].x;
+      int by = tp->type.p[i].y;
+
+      after.p[i].x = by;
+      after.p[i].y = -bx;
+    }
+    return after;
+  }
+  return tp->type;
 }
 
 void setBlock(TARGET *tp) {

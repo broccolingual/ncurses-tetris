@@ -18,6 +18,7 @@
 #define VOID 8
 #define STRING_C 9
 #define BORDER_C 10
+#define STRONG_C 20
 
 typedef struct {
   int x;
@@ -34,21 +35,29 @@ typedef struct {
   POSITION p;
 } TARGET;
 
+void shuffleBlocklist();
+BLOCK selectRandomBlock();
+void setWindow();
+void setColors();
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
 int loadHighestScore();
 void updateHighestScore();
 void makeField();
+void drawSkip(int cx, int cy);
+void drawElapsedTime(int cx, int cy, time_t timeStart);
 void drawNext(int cx, int cy, TARGET *np);
 void drawInst(int cx, int cy);
 void drawScore(int cx, int cy, int maxScore);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();
-BLOCK rotateBlock(TARGET *tp);
-BLOCK selectRandomBlock();
+BLOCK rotateBlockRight(TARGET *tp);
+BLOCK rotateBlockLeft(TARGET *tp);
 void setBlock(TARGET *tp);
 void updateBlock(int state);
 bool canMove(int dx, int dy, TARGET *tp);
-bool canRotate(TARGET *tp);
+bool canRotateRight(TARGET *tp);
+bool canRotateLeft(TARGET *tp);
 bool changeBlockState(TARGET *tp);
 void searchAlign();
 void deleteAlign(int dy);
