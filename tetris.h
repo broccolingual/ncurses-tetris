@@ -48,6 +48,7 @@ void drawElapsedTime(int cx, int cy, time_t timeStart);
 void drawNext(int cx, int cy, TARGET *np);
 void drawInst(int cx, int cy);
 void drawScore(int cx, int cy, int maxScore);
+void drawLineScore(int cx, int cy);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();
