@@ -18,6 +18,7 @@
 #define VOID 8
 #define STRING_C 9
 #define BORDER_C 10
+#define STRONG_C 20
 
 typedef struct {
   int x;

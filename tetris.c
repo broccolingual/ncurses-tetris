@@ -114,6 +114,7 @@ void setColors() {
   init_pair(8, COLOR_WHITE, COLOR_WHITE); // WHITE
   init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
   init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
+  init_pair(20, COLOR_CYAN, COLOR_BLACK); // For String (Strong)
 }
 
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
@@ -297,21 +298,19 @@ void makeField() {
 }
 
 void drawSkip(int cx, int cy) {
-  char base[16] = "| ";
   char skipLeft[16];
 
   attrset(COLOR_PAIR(STRING_C));
 
   sprintf(skipLeft, "%d", SKIP_COUNT);
   strcat(skipLeft, " / 5");
-  strcat(base, skipLeft);
 
   mvaddstr(cy + 9, cx - 12, "| SKIP:");
-  mvaddstr(cy + 10, cx - 12, base);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 10, cx - 10, skipLeft);
 }
 
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
-  char base[16] = "| ";
   char strTimeMin[8];
   char strTimeSec[8];
 
@@ -321,10 +320,10 @@ void drawElapsedTime(int cx, int cy, time_t timeStart) {
   sprintf(strTimeSec, "%02d", ((int) difftime(time(NULL), timeStart)) % 60);
   strcat(strTimeMin, ":");
   strcat(strTimeMin, strTimeSec);
-  strcat(base, strTimeMin);
 
   mvaddstr(cy + 6, cx - 12, "| TIME:");
-  mvaddstr(cy + 7, cx - 12, base);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 7, cx - 10, strTimeMin);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
@@ -345,33 +344,32 @@ void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
 
   mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
-  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| ");
-  mvaddstr(cy + 8, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| X     : ROTATE RIGHT");
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| Z     : ROTATE LEFT");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| C    : SKIP");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| LEFT : MOVE LEFT");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| RIGHT: MOVE RIGHT");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| DOWN : SOFT DROP");
-  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| Q    : EXIT");
+  mvaddstr(cy + 8, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X     : ROTATE RIGHT");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z     : ROTATE LEFT");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
+  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
   mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
   mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
-  char base1[16] = "| ";
-  char base2[16] = "| ";
   char highestScore[256];
   char score[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
+
   mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| HIGHEST SCORE:");
   sprintf(highestScore, "%d", maxScore);
-  strcat(base1, highestScore);
-  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, base1);
-  mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SCORE:");
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 1, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, highestScore);
+  attrset(COLOR_PAIR(STRING_C));
+  mvaddstr(cy + 2, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SCORE:");
   sprintf(score, "%d", SCORE);
-  strcat(base2, score);
-  mvaddstr(cy + 4, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, base2);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 3, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, score);
 }
 
 void drawGameover(int cx, int cy) {
