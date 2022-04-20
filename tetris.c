@@ -62,6 +62,7 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
 int SCORE = 0;
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.4; // 秒/1ブロック落下
+double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 
 int BLOCK_LIST[7] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
@@ -176,7 +177,7 @@ int main(void) {
     int key = getch(); // キー入力
 
     // ゲームの終了
-    if (key == 'q') {
+    if (key == 27) {
       updateHighestScore();
       break;
     }
@@ -193,7 +194,10 @@ int main(void) {
         moveRIGHT(&target);
         break;
       case 'e':
-        target.type = rotateBlock(&target);
+        target.type = rotateBlockRight(&target);
+        break;
+      case 'q':
+        target.type = rotateBlockLeft(&target);
         break;
       case 'w':
         if (SKIP_COUNT > 0) {
@@ -216,7 +220,7 @@ int main(void) {
       }
 
       clock_t nowDelayClock = clock();
-      if (nowDelayClock >= lastDelayClock + (INTERVAL * CLOCKS_PER_SEC)) {
+      if (nowDelayClock >= lastDelayClock + (GRACE_AFTER_FALLING * CLOCKS_PER_SEC)) {
         dropDelay = false;
 
         updateBlock(target.type.color + 10);
@@ -239,7 +243,7 @@ int main(void) {
     refresh(); // 画面再描画
 
     while (1) {
-      if (getch() == 'q') {
+      if (getch() == 27) {
         updateHighestScore();
         break;
       }
@@ -336,13 +340,14 @@ void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
   mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "E : ROTATE RIGHT");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : SKIP");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
-  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
-  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
-  mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : ROTATE LEFT");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : SKIP");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
+  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
+  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "ESC : EXIT");
+  mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
+  mvaddstr(cy + 18, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
@@ -361,7 +366,7 @@ void drawScore(int cx, int cy, int maxScore) {
 void drawGameover(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy, cx, "G A M E     O V E R ");
-  mvaddstr(cy + 6, cx + 6, "Q : EXIT");
+  mvaddstr(cy + 6, cx + 6, "ESC : EXIT");
 }
 
 void drawField(int cx, int cy) {
@@ -437,7 +442,7 @@ void moveLEFT(TARGET *tp) {
   }
 }
 
-bool canRotate(TARGET *tp) {
+bool canRotateRight(TARGET *tp) {
   for (int i = 0; i < 4; i++) {
     int nx = tp->p.x - tp->type.p[i].y;
     int ny = tp->p.y + tp->type.p[i].x;
@@ -449,16 +454,44 @@ bool canRotate(TARGET *tp) {
   return true;
 }
 
-BLOCK rotateBlock(TARGET *tp) {
+bool canRotateLeft(TARGET *tp) {
+  for (int i = 0; i < 4; i++) {
+    int nx = tp->p.x + tp->type.p[i].y;
+    int ny = tp->p.y - tp->type.p[i].x;
+
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+BLOCK rotateBlockRight(TARGET *tp) {
   BLOCK after = tp->type;
 
-  if (canRotate(tp)) {
+  if (canRotateRight(tp)) {
     for (int i = 0; i < 4; i++) {
       int bx = tp->type.p[i].x;
       int by = tp->type.p[i].y;
 
       after.p[i].x = -by;
       after.p[i].y = bx;
+    }
+    return after;
+  }
+  return tp->type;
+}
+
+BLOCK rotateBlockLeft(TARGET *tp) {
+  BLOCK after = tp->type;
+
+  if (canRotateLeft(tp)) {
+    for (int i = 0; i < 4; i++) {
+      int bx = tp->type.p[i].x;
+      int by = tp->type.p[i].y;
+
+      after.p[i].x = by;
+      after.p[i].y = -bx;
     }
     return after;
   }
