@@ -64,8 +64,10 @@ int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.4; // 秒/1ブロック落下
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 
-int BLOCK_LIST[7] = {1, 2, 3, 4, 5, 6, 7};
+int BLOCK_LIST[7] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
 int RANDOM_BLOCK_INDEX = 0;
+
+int SKIP_COUNT = 5;
 
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
@@ -118,6 +120,7 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
   drawInst(cx, cy);
   drawNext(cx, cy, np);
   drawElapsedTime(cx, cy, timeStart);
+  drawSkip(cx, cy);
 }
 
 int main(void) {
@@ -189,8 +192,15 @@ int main(void) {
       case 'd':
         moveRIGHT(&target);
         break;
-      case 'w':
+      case 'e':
         target.type = rotateBlock(&target);
+        break;
+      case 'w':
+        if (SKIP_COUNT > 0) {
+          SKIP_COUNT--;
+          target = next;
+          setBlock(&next);
+        }
         break;
     }
 
@@ -281,6 +291,18 @@ void makeField() {
   }
 }
 
+void drawSkip(int cx, int cy) {
+  char skipLeft[16];
+
+  attrset(COLOR_PAIR(STRING_C));
+
+  sprintf(skipLeft, "%d", SKIP_COUNT);
+  strcat(skipLeft, " times left");
+
+  mvaddstr(cy + 10, cx - 12, "- SKIP -");
+  mvaddstr(cy + 12, cx - 14, skipLeft);
+}
+
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
   char strTimeMin[8];
   char strTimeSec[8];
@@ -292,13 +314,13 @@ void drawElapsedTime(int cx, int cy, time_t timeStart) {
   strcat(strTimeMin, ":");
   strcat(strTimeMin, strTimeSec);
 
-  mvaddstr(cy + 6, cx - 10, "- TIME -");
-  mvaddstr(cy + 8, cx - 9, strTimeMin);
+  mvaddstr(cy + 6, cx - 12, "- TIME -");
+  mvaddstr(cy + 8, cx - 11, strTimeMin);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy, cx - 10, "- NEXT -");
+  mvaddstr(cy, cx - 12, "- NEXT -");
 
   if (np->type.color != 6) {
     attrset(COLOR_PAIR(np->type.color));
@@ -306,20 +328,21 @@ void drawNext(int cx, int cy, TARGET *np) {
     attrset(COLOR_PAIR(VOID));
   }
   for (int i = 0; i < 4; i++) {
-    mvaddstr(cy + 3 + np->type.p[i].y, cx - 8 + np->type.p[i].x * WIDTH_RATIO, "  ");
+    mvaddstr(cy + 3 + np->type.p[i].y, cx - 10 + np->type.p[i].x * WIDTH_RATIO, "  ");
   }
 }
 
 void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
   mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "- INSTRUCTION -");
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : ROTATE");
-  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
-  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
-  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
+  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "E : ROTATE RIGHT");
+  mvaddstr(cy + 10, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "W : SKIP");
+  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "A : MOVE LEFT");
+  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "D : MOVE RIGHT");
+  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "S : MOVE DOWN");
+  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Q : EXIT");
+  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
+  mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawScore(int cx, int cy, int maxScore) {
