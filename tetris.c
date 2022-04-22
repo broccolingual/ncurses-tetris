@@ -170,8 +170,11 @@ int main(void) {
       SCORE++;
 
       DROP_COUNT++;
-      if (DROP_COUNT % 160 == 0 && INTERVAL >= 0.3) {
+      if (DROP_COUNT % 240 == 0 && INTERVAL >= 0.3) {
         INTERVAL -= 0.05;
+      }
+
+      if (DROP_COUNT % 120 == 0) {
         LEVEL++;
       }
 
