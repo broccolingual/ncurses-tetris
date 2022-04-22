@@ -450,6 +450,7 @@ bool canMove(int dx, int dy, TARGET *tp) {
 void moveDOWN(TARGET *tp) {
   if (canMove(0, 1, tp)) {
     tp->p.y++;
+    SCORE += 2;
   }
 }
 
@@ -564,16 +565,16 @@ void searchAlign() {
 
   switch (lineCount) {
     case 1:
-      SCORE += 40;
-      break;
-    case 2:
       SCORE += 100;
       break;
-    case 3:
+    case 2:
       SCORE += 300;
       break;
+    case 3:
+      SCORE += 500;
+      break;
     case 4:
-      SCORE += 1200;
+      SCORE += 800;
       break;
   }
 }
