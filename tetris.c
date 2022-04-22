@@ -59,6 +59,7 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
   }
 };
 
+int LEVEL = 1; // 現在のレベル
 int SCORE = 0; // 現在のスコア
 int LINE_SCORE = 0; // ライン消しをした回数
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
@@ -127,6 +128,7 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
   drawElapsedTime(cx, cy, timeStart);
   drawSkip(cx, cy);
   drawLineScore(cx, cy);
+  drawLevel(cx, cy);
 }
 
 int main(void) {
@@ -168,8 +170,9 @@ int main(void) {
       SCORE++;
 
       DROP_COUNT++;
-      if (DROP_COUNT % 360 == 0 && INTERVAL >= 0.3) {
+      if (DROP_COUNT % 160 == 0 && INTERVAL >= 0.3) {
         INTERVAL -= 0.05;
+        LEVEL++;
       }
 
       erase(); // 画面消去
@@ -342,6 +345,17 @@ void drawLineScore(int cx, int cy) {
   sprintf(lineScore, "%d", LINE_SCORE);
   attrset(COLOR_PAIR(STRONG_C));
   mvaddstr(cy + 7, cx - 14, lineScore);
+}
+
+void drawLevel(int cx, int cy) {
+  char level[256]; 
+
+  attrset(COLOR_PAIR(STRING_C));
+
+  mvaddstr(cy + 8, cx - 16, "| LEVEL:");
+  sprintf(level, "%d", LEVEL);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvaddstr(cy + 9, cx - 14, level);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
@@ -565,16 +579,16 @@ void searchAlign() {
 
   switch (lineCount) {
     case 1:
-      SCORE += 100;
+      SCORE += LEVEL * 100;
       break;
     case 2:
-      SCORE += 300;
+      SCORE += LEVEL * 300;
       break;
     case 3:
-      SCORE += 500;
+      SCORE += LEVEL * 500;
       break;
     case 4:
-      SCORE += 800;
+      SCORE += LEVEL * 800;
       break;
   }
 }
