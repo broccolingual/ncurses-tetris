@@ -68,7 +68,7 @@ double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
 
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 
-int BLOCK_LIST[7] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
+int BLOCK_LIST[BLOCK_MAX] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
 int RANDOM_BLOCK_INDEX = 0;
 
 int SKIP_COUNT = 5; // 現在利用できるスキップの回数
@@ -170,7 +170,7 @@ int main(void) {
       SCORE++;
 
       DROP_COUNT++;
-      if (DROP_COUNT % 240 == 0 && INTERVAL >= 0.3) {
+      if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
         INTERVAL -= 0.05;
       }
 
@@ -312,15 +312,15 @@ void drawScore(int cx, int cy, int maxScore) {
 
   attrset(COLOR_PAIR(STRING_C));
 
-  mvaddstr(cy, cx - 16, "| HIGHEST:");
+  mvprintw(cy, cx - 16, "| HIGHEST:");
   sprintf(highestScore, "%d", maxScore);
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 1, cx - 14, highestScore);
+  mvprintw(cy + 1, cx - 14, highestScore);
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy + 2, cx - 16, "| SCORE:");
+  mvprintw(cy + 2, cx - 16, "| SCORE:");
   sprintf(score, "%d", SCORE);
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 3, cx - 14, score);
+  mvprintw(cy + 3, cx - 14, score);
 }
 
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
@@ -334,9 +334,9 @@ void drawElapsedTime(int cx, int cy, time_t timeStart) {
   strcat(strTimeMin, ":");
   strcat(strTimeMin, strTimeSec);
 
-  mvaddstr(cy + 4, cx - 16, "| TIME:");
+  mvprintw(cy + 4, cx - 16, "| TIME:");
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 5, cx - 14, strTimeMin);
+  mvprintw(cy + 5, cx - 14, strTimeMin);
 }
 
 void drawLineScore(int cx, int cy) {
@@ -344,10 +344,10 @@ void drawLineScore(int cx, int cy) {
 
   attrset(COLOR_PAIR(STRING_C));
 
-  mvaddstr(cy + 6, cx - 16, "| LINES:");
+  mvprintw(cy + 6, cx - 16, "| LINES:");
   sprintf(lineScore, "%d", LINE_SCORE);
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 7, cx - 14, lineScore);
+  mvprintw(cy + 7, cx - 14, lineScore);
 }
 
 void drawLevel(int cx, int cy) {
@@ -355,15 +355,15 @@ void drawLevel(int cx, int cy) {
 
   attrset(COLOR_PAIR(STRING_C));
 
-  mvaddstr(cy + 8, cx - 16, "| LEVEL:");
+  mvprintw(cy + 8, cx - 16, "| LEVEL:");
   sprintf(level, "%d", LEVEL);
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 9, cx - 14, level);
+  mvprintw(cy + 9, cx - 14, level);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| NEXT:");
+  mvprintw(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| NEXT:");
 
   if (np->type.color != 6) {
     attrset(COLOR_PAIR(np->type.color));
@@ -371,7 +371,7 @@ void drawNext(int cx, int cy, TARGET *np) {
     attrset(COLOR_PAIR(VOID));
   }
   for (int i = 0; i < 4; i++) {
-    mvaddstr(cy + 3 + np->type.p[i].y, cx + (FIELD_WIDTH * WIDTH_RATIO) + 6 + np->type.p[i].x * WIDTH_RATIO, "  ");
+    mvprintw(cy + 3 + np->type.p[i].y, cx + (FIELD_WIDTH * WIDTH_RATIO) + 6 + np->type.p[i].x * WIDTH_RATIO, "  ");
   }
 }
 
@@ -383,30 +383,38 @@ void drawSkip(int cx, int cy) {
   sprintf(skipLeft, "%d", SKIP_COUNT);
   strcat(skipLeft, " / 5");
 
-  mvaddstr(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SKIP:");
+  mvprintw(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SKIP:");
   attrset(COLOR_PAIR(STRONG_C));
-  mvaddstr(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, skipLeft);
+  mvprintw(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, skipLeft);
 }
 
 void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
 
-  mvaddstr(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
-  mvaddstr(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X     : ROTATE RIGHT");
-  mvaddstr(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z     : ROTATE LEFT");
-  mvaddstr(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
-  mvaddstr(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
-  mvaddstr(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
-  mvaddstr(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
-  mvaddstr(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
-  mvaddstr(cy + 19, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
-  mvaddstr(cy + 20, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
+  mvprintw(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
+  mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X     : ROTATE RIGHT");
+  mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z     : ROTATE LEFT");
+  mvprintw(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
+  mvprintw(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
+  mvprintw(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
+  mvprintw(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
+  mvprintw(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
+  mvprintw(cy + 19, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "Copyright © 2022 Broccolingual");
+  mvprintw(cy + 20, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "All Rights Reserved.");
 }
 
 void drawGameover(int cx, int cy) {
+  char base[64] = "SCORE: ";
+  char score[32];
+
   attrset(COLOR_PAIR(STRING_C));
-  mvaddstr(cy, cx, "G A M E     O V E R ");
-  mvaddstr(cy + 6, cx + 6, "Q : EXIT");
+  mvprintw(cy, cx, "G A M E     O V E R ");
+  sprintf(score, "%d", SCORE);
+  strcat(base, score);
+  attrset(COLOR_PAIR(STRONG_C));
+  mvprintw(cy + 2, cx + 5, base);
+  attrset(COLOR_PAIR(STRING_C));
+  mvprintw(cy + 6, cx + 6, "Q : EXIT");
 }
 
 void drawField(int cx, int cy) {
@@ -424,9 +432,9 @@ void drawField(int cx, int cy) {
       
       attrset(COLOR_PAIR(colorCode));
       if (colorCode != BORDER_C) {
-        mvaddstr(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
+        mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
       } else {
-        mvaddstr(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "__");
+        mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "__");
       }
     }
   }
