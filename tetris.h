@@ -1,16 +1,3 @@
-#define FIELD_WIDTH   10
-#define FIELD_HEIGHT  20
-#define FIELD_HEIGHT_MARGIN 4
-
-#define WIDTH_RATIO 2
-#define HEIGHT_RATIO 1
-
-#define MARGIN -1
-#define VOID 8
-#define STRING_C 9
-#define BORDER_C 10
-#define STRONG_C 20
-
 typedef struct {
   int x;
   int y;
@@ -35,9 +22,11 @@ void initRandomSeed();
 void shuffleBlocklist();
 int selectRandomBlock();
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
+// score.c
 int loadHighestScore();
 void updateHighestScore(int currentScore);
+
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
 void makeField();
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);

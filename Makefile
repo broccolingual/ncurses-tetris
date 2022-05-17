@@ -4,7 +4,7 @@ CFLAG = -c -Wall
 tetris: tetris.o init.o random.o score.o
 	$(CC) -o tetris tetris.o init.o random.o score.o -lncurses
 
-tetris.o: tetris.c tetris.h block.h
+tetris.o: tetris.c tetris.h block.h field.h
 	$(CC) $(CFLAG) tetris.c
 
 init.o: init.c

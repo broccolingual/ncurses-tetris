@@ -9,6 +9,7 @@
 
 #include "tetris.h"
 #include "block.h"
+#include "field.h"
 
 // テトリミノの定義
 BLOCK BLOCKS[BLOCK_MAX + 1] = {
@@ -93,7 +94,7 @@ int main(void) {
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
-	cy = (h - (FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
+  cy = (h - (FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
   int maxScore = loadHighestScore();
