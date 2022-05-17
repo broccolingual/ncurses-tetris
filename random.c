@@ -7,9 +7,11 @@
 int BLOCK_LIST[BLOCK_MAX] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
 int RANDOM_BLOCK_INDEX = 0;
 
-void shuffleBlocklist() {
+void initRandomSeed() {
   srand((unsigned int)time(NULL));
+}
 
+void shuffleBlocklist() {
   for(int i = 0; i < BLOCK_MAX; i++) {
     int j = rand() % BLOCK_MAX;
     int t = BLOCK_LIST[i];

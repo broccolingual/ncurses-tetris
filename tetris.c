@@ -86,6 +86,7 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
 }
 
 int main(void) {
+  initRandomSeed(); // ランダムシードの生成
   initscr(); // 端末の初期化
   initWindow(); // windowの初期設定
   initColors(); // 色の設定
@@ -143,7 +144,7 @@ int main(void) {
 
     // ゲームの終了
     if (key == 'q') {
-      updateHighestScore();
+      updateHighestScore(SCORE);
       break;
     }
 
@@ -209,7 +210,7 @@ int main(void) {
 
     while (1) {
       if (getch() == 'q') {
-        updateHighestScore();
+        updateHighestScore(SCORE);
         break;
       }
     }
@@ -218,28 +219,6 @@ int main(void) {
 	endwin(); // スクリーンの終了
 
   return 0;
-}
-
-int loadHighestScore() {
-  char lastScore[256];
-  int maxScore = 0;
-
-  FILE *fp = fopen("score.txt", "r");
-  if (fp == NULL) return 0;
-  if (fgets(lastScore, 256, fp) != NULL) {
-    maxScore = atoi(lastScore);
-  }
-  fclose(fp);
-  return maxScore;
-}
-
-void updateHighestScore() {
-  if (loadHighestScore() < SCORE) {
-    FILE *fp = fopen("score.txt", "w");
-    if (fp == NULL) return;
-    fprintf(fp, "%d\n", SCORE);
-    fclose(fp);
-  }
 }
 
 void makeField() {

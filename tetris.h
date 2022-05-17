@@ -31,12 +31,13 @@ void initWindow();
 void initColors();
 
 // random.c
+void initRandomSeed();
 void shuffleBlocklist();
 int selectRandomBlock();
 
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
 int loadHighestScore();
-void updateHighestScore();
+void updateHighestScore(int currentScore);
 void makeField();
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);
