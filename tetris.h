@@ -19,12 +19,15 @@ void initColors();
 
 // random.c
 void initRandomSeed();
-void shuffleBlocklist();
+void shuffleBlockList();
 int selectRandomBlock();
 
 // score.c
 int loadHighestScore();
 void updateHighestScore(int currentScore);
+
+// utils.c
+void timeToStr(char *strTime, time_t timeStart);
 
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
 void makeField();

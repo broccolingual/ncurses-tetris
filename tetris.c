@@ -258,19 +258,14 @@ void drawScore(int cx, int cy, int maxScore) {
 }
 
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
-  char strTimeMin[8];
-  char strTimeSec[8];
+  char strTime[6];
+  timeToStr(strTime, timeStart);
 
   attrset(COLOR_PAIR(STRING_C));
 
-  sprintf(strTimeMin, "%02d", ((int) difftime(time(NULL), timeStart)) / 60);
-  sprintf(strTimeSec, "%02d", ((int) difftime(time(NULL), timeStart)) % 60);
-  strcat(strTimeMin, ":");
-  strcat(strTimeMin, strTimeSec);
-
   mvprintw(cy + 4, cx - 16, "| TIME:");
   attrset(COLOR_PAIR(STRONG_C));
-  mvprintw(cy + 5, cx - 14, strTimeMin);
+  mvprintw(cy + 5, cx - 14, strTime);
 }
 
 void drawLineScore(int cx, int cy) {
