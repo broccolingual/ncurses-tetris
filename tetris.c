@@ -48,7 +48,7 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
     {{0, 0}, {0, -1}, {1, 0}, {2, 0}}
   },
 
-  // BLOCK_L | WHITE
+  // BLOCK_L | ORANGE
   { 
     6,
     {{0, 0}, {0, -1}, {-1, 0}, {-2, 0}}
@@ -299,11 +299,8 @@ void drawNext(int cx, int cy, TARGET *np) {
   attrset(COLOR_PAIR(STRING_C));
   mvprintw(cy, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| NEXT:");
 
-  if (np->type.color != 6) {
-    attrset(COLOR_PAIR(np->type.color));
-  } else {
-    attrset(COLOR_PAIR(VOID));
-  }
+  attrset(COLOR_PAIR(np->type.color));
+
   for (int i = 0; i < 4; i++) {
     mvprintw(cy + 3 + np->type.p[i].y, cx + (FIELD_WIDTH * WIDTH_RATIO) + 6 + np->type.p[i].x * WIDTH_RATIO, "  ");
   }
