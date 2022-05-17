@@ -8,6 +8,7 @@
 #include <ncurses.h>
 
 #include "tetris.h"
+#include "block.h"
 
 // テトリミノの定義
 BLOCK BLOCKS[BLOCK_MAX + 1] = {
@@ -68,57 +69,10 @@ double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
 
 int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
 
-int BLOCK_LIST[BLOCK_MAX] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
-int RANDOM_BLOCK_INDEX = 0;
-
 int SKIP_COUNT = 5; // 現在利用できるスキップの回数
 
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
-
-void shuffleBlocklist() {
-  srand((unsigned int)time(NULL));
-
-  for(int i = 0; i < BLOCK_MAX; i++) {
-    int j = rand() % BLOCK_MAX;
-    int t = BLOCK_LIST[i];
-    BLOCK_LIST[i] = BLOCK_LIST[j];
-    BLOCK_LIST[j] = t;
-  }
-}
-
-BLOCK selectRandomBlock() {
-  if (RANDOM_BLOCK_INDEX < BLOCK_MAX) {
-    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
-  } else {
-    shuffleBlocklist();
-    RANDOM_BLOCK_INDEX = 0;
-    return BLOCKS[BLOCK_LIST[RANDOM_BLOCK_INDEX++]];
-  }
-}
-
-void setWindow() {
-  curs_set(0); // カーソルを非表示
-  noecho(); // 入力した文字を非表示
-  cbreak(); // Enter不要の入力モード
-  nodelay(stdscr, TRUE); // getchのノンブロッキング化
-  keypad(stdscr, TRUE); // カーソルキーの有効化
-}
-
-void setColors() {
-  start_color();
-  init_pair(1, COLOR_CYAN, COLOR_CYAN); // CYAN
-  init_pair(2, COLOR_YELLOW, COLOR_YELLOW); // YELLOW
-  init_pair(3, COLOR_GREEN, COLOR_GREEN); // GREEN
-  init_pair(4, COLOR_RED, COLOR_RED); // RED
-  init_pair(5, COLOR_BLUE, COLOR_BLUE); // BLUE
-  init_pair(6, COLOR_BLACK, COLOR_BLACK); // BLACK
-  init_pair(7, COLOR_MAGENTA, COLOR_MAGENTA); // MAGENTA
-  init_pair(8, COLOR_WHITE, COLOR_WHITE); // WHITE
-  init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
-  init_pair(10, COLOR_BLACK, COLOR_WHITE); // For Border
-  init_pair(20, COLOR_CYAN, COLOR_BLACK); // For String (Strong)
-}
 
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
   drawField(cx, cy);
@@ -133,8 +87,8 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
 
 int main(void) {
   initscr(); // 端末の初期化
-  setWindow(); // windowの初期設定
-  setColors(); // 色の設定
+  initWindow(); // windowの初期設定
+  initColors(); // 色の設定
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
@@ -548,7 +502,7 @@ BLOCK rotateBlockLeft(TARGET *tp) {
 }
 
 void setBlock(TARGET *tp) {
-  tp->type = selectRandomBlock();
+  tp->type = BLOCKS[selectRandomBlock()];
   tp->p.x = (FIELD_WIDTH / 2) - 1;
   tp->p.y = 2;
 }
