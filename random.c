@@ -7,7 +7,7 @@
 int BLOCK_LIST[BLOCK_MAX] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
 int RANDOM_BLOCK_INDEX = 0;
 
-void initRandomSeed() {
+void generateRandomSeed() {
   srand((unsigned int)time(NULL));
 }
 

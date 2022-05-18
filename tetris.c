@@ -87,7 +87,7 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
 }
 
 int main(void) {
-  initRandomSeed(); // ランダムシードの生成
+  generateRandomSeed(); // ランダムシードの生成
   initscr(); // 端末の初期化
   initWindow(); // windowの初期設定
   initColors(); // 色の設定

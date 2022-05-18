@@ -18,7 +18,7 @@ void initWindow();
 void initColors();
 
 // random.c
-void initRandomSeed();
+void generateRandomSeed();
 void shuffleBlockList();
 int selectRandomBlock();
 
@@ -28,6 +28,7 @@ void updateHighestScore(int currentScore);
 
 // utils.c
 void timeToStr(char *strTime, time_t timeStart);
+void initColorHex(int n, const char *cc);
 
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
 void makeField();

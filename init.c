@@ -3,6 +3,8 @@
 
 #include <ncurses.h>
 
+void initColorHex(int n, const char *cc);
+
 void initWindow() {
   curs_set(0); // カーソルを非表示
   noecho(); // 入力した文字を非表示
@@ -13,21 +15,25 @@ void initWindow() {
 
 void initColors() {
   start_color();
-  init_color(30, 1000, 550, 0); // ORANGE
-  init_color(31, 1000, 1000, 0); // YELLOW
-  init_color(32, 0, 682, 936); // SKY BLUE
-  init_color(33, 544, 321, 631); // PURPLE
-  init_color(34, 750, 750, 750); // GRAY
 
-  init_pair(1, 32, 32); // CYAN
+  initColorHex(30, "#66ccff"); // CYAN
+  initColorHex(31, "#faf500"); // YELLOW
+  initColorHex(32, "#35a16b"); // LIGHTGREEN
+  initColorHex(33, "#ff2800"); // RED
+  initColorHex(34, "#0041ff"); // BLUE
+  initColorHex(35, "#ff9900"); // ORANGE
+  initColorHex(36, "#9a0079"); // PURPLE
+  initColorHex(37, "#252525"); // GRAY
+
+  init_pair(1, 30, 30); // CYAN
   init_pair(2, 31, 31); // YELLOW
-  init_pair(3, COLOR_GREEN, COLOR_GREEN); // GREEN
-  init_pair(4, COLOR_RED, COLOR_RED); // RED
-  init_pair(5, COLOR_BLUE, COLOR_BLUE); // BLUE
-  init_pair(6, 30, 30); // ORANGE
-  init_pair(7, 33, 33); // PURPLE
-  init_pair(8, 34, 34); // WHITE
-  init_pair(9, 34, COLOR_BLACK); // For String
-  init_pair(10, COLOR_BLACK, 34); // For Border
+  init_pair(3, 32, 32); // LIGHTGREEN
+  init_pair(4, 33, 33); // RED
+  init_pair(5, 34, 34); // BLUE
+  init_pair(6, 35, 35); // ORANGE
+  init_pair(7, 36, 36); // PURPLE
+  init_pair(8, 37, 37); // GRAY
+  init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
+  init_pair(10, COLOR_WHITE, 37); // For Border
   init_pair(20, 32, COLOR_BLACK); // For String (Strong)
 }
