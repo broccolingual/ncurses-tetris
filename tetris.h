@@ -44,7 +44,7 @@ void drawField(int cx, int cy);
 void refreshField();
 BLOCK rotateBlockRight(TARGET *tp);
 BLOCK rotateBlockLeft(TARGET *tp);
-void setBlock(TARGET *tp);
+bool setBlock(TARGET *tp);
 void updateBlock(int state);
 bool canMove(int dx, int dy, TARGET *tp);
 bool canRotateRight(TARGET *tp);

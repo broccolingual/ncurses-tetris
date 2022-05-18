@@ -27,19 +27,19 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
   // BLOCK_O | YELLOW
   { 
     2,
-    {{0, 0}, {0, 1}, {1, 1}, {1, 0}}
+    {{0, 0}, {0, -1}, {1, -1}, {1, 0}}
   },
 
   // BLOCK_S | GREEN
   { 
     3,
-    {{0, 0}, {0, 1}, {-1, 1}, {1, 0}}
+    {{0, 0}, {0, -1}, {-1, 0}, {1, -1}}
   },
 
   // BLOCK_Z | RED
   { 
     4,
-    {{0, 0}, {0, 1}, {1, 1}, {-1, 0}}
+    {{0, 0}, {0, -1}, {1, 0}, {-1, -1}}
   },
 
   // BLOCK_J | BLUE
@@ -68,7 +68,7 @@ int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.5; // 秒/1ブロック落下
 double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
 
-int FIELD[FIELD_HEIGHT+FIELD_HEIGHT_MARGIN][FIELD_WIDTH]; // テトリスのフィールド
+int FIELD[FIELD_HEIGHT][FIELD_WIDTH]; // テトリスのフィールド
 
 int SKIP_COUNT = 5; // 現在利用できるスキップの回数
 
@@ -94,7 +94,7 @@ int main(void) {
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
-  cy = (h - (FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
+  cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
   int maxScore = loadHighestScore();
@@ -223,17 +223,7 @@ int main(void) {
 }
 
 void makeField() {
-  for (int y = 0; y < FIELD_HEIGHT_MARGIN - 1; y++) {
-    for (int x = 0; x < FIELD_WIDTH; x++) {
-      FIELD[y][x] = MARGIN;
-    }
-  }
-
-  for (int x = 0; x < FIELD_WIDTH; x++) {
-    FIELD[FIELD_HEIGHT_MARGIN - 1][x] = BORDER_C;
-  }
-
-  for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       FIELD[y][x] = VOID;
     }
@@ -318,8 +308,8 @@ void drawInst(int cx, int cy) {
   attrset(COLOR_PAIR(STRING_C));
 
   mvprintw(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
-  mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X     : ROTATE RIGHT");
-  mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z     : ROTATE LEFT");
+  mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X    : ROTATE RIGHT");
+  mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z    : ROTATE LEFT");
   mvprintw(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
   mvprintw(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
   mvprintw(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
@@ -344,40 +334,24 @@ void drawGameover(int cx, int cy) {
 }
 
 void drawField(int cx, int cy) {
-  for (int y = 0; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       int colorCode;
 
       if (FIELD[y][x] > 10) {
         colorCode = FIELD[y][x] - 10;
-      } else if (FIELD[y][x] == MARGIN) {
-        colorCode = VOID;
       } else {
         colorCode = FIELD[y][x];
       }
       
       attrset(COLOR_PAIR(colorCode));
-      if (colorCode != BORDER_C) {
-        mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
-      } else {
-        mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "__");
-      }
+      mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
     }
   }
 }
 
 void refreshField() {
-  for (int y = 0; y < FIELD_HEIGHT_MARGIN - 1; y++) {
-    for (int x = 0; x < FIELD_WIDTH; x++) {
-      FIELD[y][x] = MARGIN;
-    }
-  }
-
-  for (int x = 0; x < FIELD_WIDTH; x++) {
-    FIELD[FIELD_HEIGHT_MARGIN - 1][x] = BORDER_C;
-  }
-
-  for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       if (BLOCK_I <= FIELD[y][x] && FIELD[y][x] <= BLOCK_T) {
         FIELD[y][x] = VOID;
@@ -391,7 +365,7 @@ bool canMove(int dx, int dy, TARGET *tp) {
     int nx = tp->p.x + tp->type.p[i].x + dx;
     int ny = tp->p.y + tp->type.p[i].y + dy;
 
-    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT) && !(FIELD[ny][nx] > 10))) {
       return false;
     }
   }
@@ -422,7 +396,7 @@ bool canRotateRight(TARGET *tp) {
     int nx = tp->p.x - tp->type.p[i].y;
     int ny = tp->p.y + tp->type.p[i].x;
 
-    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT) && !(FIELD[ny][nx] > 10))) {
       return false;
     }
   }
@@ -434,7 +408,7 @@ bool canRotateLeft(TARGET *tp) {
     int nx = tp->p.x + tp->type.p[i].y;
     int ny = tp->p.y - tp->type.p[i].x;
 
-    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) && !(FIELD[ny][nx] > 10))) {
+    if (!((0 <= nx && nx < FIELD_WIDTH) && (ny < FIELD_HEIGHT) && !(FIELD[ny][nx] > 10))) {
       return false;
     }
   }
@@ -473,10 +447,25 @@ BLOCK rotateBlockLeft(TARGET *tp) {
   return tp->type;
 }
 
-void setBlock(TARGET *tp) {
-  tp->type = BLOCKS[selectRandomBlock()];
-  tp->p.x = (FIELD_WIDTH / 2) - 1;
-  tp->p.y = 2;
+bool setBlock(TARGET *tp) {
+  BLOCK targetBlock = BLOCKS[selectRandomBlock()];
+  int setX = (FIELD_WIDTH / 2) - 1;
+  int setY = 1;
+
+  // ブロック設置判定
+  // for (int i = 0; i < FIELD_WIDTH; i++) {
+  //   for (int j = 0; j < 4; j++) {
+  //     int nx = i + tp->type.p[j].x;
+  //     int ny = setY + tp->type.p[j].y;
+  //     if (!(nx >= 0 && nx < FIELD_WIDTH)) break;
+  //     if (FIELD[ny][nx] > 10) break;
+  //   }
+  // }
+
+  tp->type = targetBlock;
+  tp->p.x = setX;
+  tp->p.y = setY;
+  return true;
 }
 
 void updateBlock(int state) {
@@ -493,7 +482,7 @@ bool changeBlockState(TARGET *tp) {
     int nx = tp->p.x + tp->type.p[i].x + 0;
     int ny = tp->p.y + tp->type.p[i].y + 1;
 
-    if (FIELD[ny][nx] > 10 || ny == FIELD_HEIGHT + FIELD_HEIGHT_MARGIN) {
+    if (FIELD[ny][nx] > 10 || ny == FIELD_HEIGHT) {
       return true;
     }
   }
@@ -503,7 +492,7 @@ bool changeBlockState(TARGET *tp) {
 void searchAlign() {
   int lineCount = 0;
 
-  for (int y = FIELD_HEIGHT_MARGIN; y < FIELD_HEIGHT + FIELD_HEIGHT_MARGIN; y++) {
+  for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       if (FIELD[y][x] == VOID) break;
       if (x == FIELD_WIDTH - 1) {
@@ -537,13 +526,13 @@ void deleteAlign(int dy) {
 
   int TMP_FIELD[dy][FIELD_WIDTH];
 
-  for (int y = FIELD_HEIGHT_MARGIN; y < dy; y++) {
+  for (int y = 0; y < dy; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       TMP_FIELD[y][x] = FIELD[y][x];
     }
   }
 
-  for (int y = FIELD_HEIGHT_MARGIN; y < dy; y++) {
+  for (int y = 0; y < dy; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       FIELD[y + 1][x] = TMP_FIELD[y][x];
     }
@@ -552,7 +541,7 @@ void deleteAlign(int dy) {
 
 bool checkGameover() {
   for (int x = 0; x < FIELD_WIDTH; x++) {
-    if (FIELD[FIELD_HEIGHT_MARGIN][x] > 10) return true;
+    if (FIELD[0][x] > 10) return true;
   }
   return false;
 }

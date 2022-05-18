@@ -9,8 +9,6 @@
 
 #define BLOCK_MAX 7
 
-#define MARGIN -1
 #define VOID 8
 #define STRING_C 9
-#define BORDER_C 10
 #define STRONG_C 20

@@ -34,6 +34,5 @@ void initColors() {
   init_pair(7, 36, 36); // PURPLE
   init_pair(8, 37, 37); // GRAY
   init_pair(9, COLOR_WHITE, COLOR_BLACK); // For String
-  init_pair(10, COLOR_WHITE, 37); // For Border
   init_pair(20, 32, COLOR_BLACK); // For String (Strong)
 }
