@@ -19,14 +19,11 @@ void initColorHex(int n, const char *cc) {
     if (*cc++ != '#') return;
     char sr[3], sg[3], sb[3];
     int r, g, b;
-    strncpy(sr, cc, 2);
-    sr[2] = '\0';
+    strncpy(sr, cc, 2); sr[2] = '\0';
     r = (int) strtol(sr, NULL, 16);
-    strncpy(sg, cc+2, 2);
-    sg[2] = '\0';
+    strncpy(sg, cc+2, 2); sg[2] = '\0';
     g = (int) strtol(sg, NULL, 16);
-    strncpy(sb, cc+4, 2);
-    sb[2] = '\0';
+    strncpy(sb, cc+4, 2); sb[2] = '\0';
     b = (int) strtol(sb, NULL, 16);
     r = (int) (r / (double) 255 * 1000);
     g = (int) (g / (double) 255 * 1000);
