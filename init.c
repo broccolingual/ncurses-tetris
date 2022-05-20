@@ -6,9 +6,11 @@
 void initColorHex(int n, const char *cc);
 
 void initWindow() {
+  initscr(); // 端末の初期化
   curs_set(0); // カーソルを非表示
   noecho(); // 入力した文字を非表示
   cbreak(); // Enter不要の入力モード
+  crmode(); // 文字をバッファに溜めない
   nodelay(stdscr, TRUE); // getchのノンブロッキング化
   keypad(stdscr, TRUE); // カーソルキーの有効化
 }

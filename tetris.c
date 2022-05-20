@@ -88,7 +88,6 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
 
 int main(void) {
   generateRandomSeed(); // ランダムシードの生成
-  initscr(); // 端末の初期化
   initWindow(); // windowの初期設定
   initColors(); // 色の設定
 
@@ -111,6 +110,9 @@ int main(void) {
   
   clock_t lastClock = clock();
   while (1) {
+    getmaxyx(stdscr, h, w); // 画面幅の取得
+    cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
+	  cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
     // ゲームオーバー判定
     if (checkGameover()) {
