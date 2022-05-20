@@ -35,7 +35,7 @@ void makeField();
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);
 void drawNext(int cx, int cy, TARGET *np);
-void drawInst(int cx, int cy);
+void drawInst(int cx, int cy, bool rflag);
 void drawScore(int cx, int cy, int maxScore);
 void drawLineScore(int cx, int cy);
 void drawLevel(int cx, int cy);

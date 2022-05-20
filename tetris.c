@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include <ncurses.h>
 
@@ -61,6 +62,7 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
   }
 };
 
+bool rflag = false; // 操作反転フラグ
 int LEVEL = 1; // 現在のレベル
 int SCORE = 0; // 現在のスコア
 int LINE_SCORE = 0; // ライン消しをした回数
@@ -78,7 +80,7 @@ TARGET next; // 次に操作するブロックのデータ
 void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
-  drawInst(cx, cy);
+  drawInst(cx, cy, rflag);
   drawNext(cx, cy, np);
   drawElapsedTime(cx, cy, timeStart);
   drawSkip(cx, cy);
@@ -86,7 +88,21 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
   drawLevel(cx, cy);
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+  int opt;
+
+  opterr = 0;
+  while ((opt = getopt(argc, argv, "r")) != -1) {
+    switch (opt) {
+    case 'r':
+      rflag = true;
+      break;
+    default:
+      fprintf(stderr, "コマンドのオプションが違います。-%c\n", optopt);
+      return 1;
+    }
+  }
+
   generateRandomSeed(); // ランダムシードの生成
   initWindow(); // windowの初期設定
   initColors(); // 色の設定
@@ -154,19 +170,46 @@ int main(void) {
     // テトリミノの操作
     switch (key) {
       case KEY_LEFT:
-        moveLEFT(&target);
+        if (rflag) {
+          moveRIGHT(&target);
+        } else {
+          moveLEFT(&target);
+        }
         break;
       case KEY_DOWN:
-        moveDOWN(&target);
+        if (rflag) {
+          ;
+        } else {
+          moveDOWN(&target);
+        }
         break;
       case KEY_RIGHT:
-        moveRIGHT(&target);
+        if (rflag) {
+          moveLEFT(&target);
+        } else {
+          moveRIGHT(&target);
+        }
+        break;
+      case KEY_UP:
+        if (rflag) {
+          moveDOWN(&target);
+        } else {
+          ;
+        }
         break;
       case 'x':
-        target.type = rotateBlockRight(&target);
+        if (rflag) {
+          target.type = rotateBlockLeft(&target);
+        } else {
+          target.type = rotateBlockRight(&target);
+        }
         break;
       case 'z':
-        target.type = rotateBlockLeft(&target);
+        if (rflag) {
+          target.type = rotateBlockRight(&target);
+        } else {
+          target.type = rotateBlockLeft(&target);
+        }
         break;
       case 'c':
         if (SKIP_COUNT > 0) {
@@ -306,17 +349,28 @@ void drawSkip(int cx, int cy) {
   mvprintw(cy + 7, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, skipLeft);
 }
 
-void drawInst(int cx, int cy) {
+void drawInst(int cx, int cy, bool rflag) {
   attrset(COLOR_PAIR(STRING_C));
 
-  mvprintw(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
-  mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X    : ROTATE RIGHT");
-  mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z    : ROTATE LEFT");
-  mvprintw(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
-  mvprintw(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
-  mvprintw(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
-  mvprintw(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
-  mvprintw(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
+  if (rflag) {
+    mvprintw(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
+    mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z    : ROTATE RIGHT");
+    mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X    : ROTATE LEFT");
+    mvprintw(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
+    mvprintw(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE LEFT");
+    mvprintw(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE RIGHT");
+    mvprintw(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "UP   : SOFT DROP");
+    mvprintw(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
+    } else {
+    mvprintw(cy + 9, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| INSTRUCTION:");
+    mvprintw(cy + 11, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "X    : ROTATE RIGHT");
+    mvprintw(cy + 12, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Z    : ROTATE LEFT");
+    mvprintw(cy + 13, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "C    : SKIP");
+    mvprintw(cy + 14, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "LEFT : MOVE LEFT");
+    mvprintw(cy + 15, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "RIGHT: MOVE RIGHT");
+    mvprintw(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
+    mvprintw(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
+  }
 }
 
 void drawGameover(int cx, int cy) {
