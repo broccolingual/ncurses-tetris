@@ -30,7 +30,7 @@ void updateHighestScore(int currentScore);
 void timeToStr(char *strTime, time_t timeStart);
 void initColorHex(int n, const char *cc);
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart);
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart, bool rflag);
 void makeField();
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);

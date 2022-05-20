@@ -62,7 +62,6 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
   }
 };
 
-bool rflag = false; // 操作反転フラグ
 int LEVEL = 1; // 現在のレベル
 int SCORE = 0; // 現在のスコア
 int LINE_SCORE = 0; // ライン消しをした回数
@@ -77,7 +76,7 @@ int SKIP_COUNT = 5; // 現在利用できるスキップの回数
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) {
+void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart, bool rflag) {
   drawField(cx, cy);
   drawScore(cx, cy, maxScore);
   drawInst(cx, cy, rflag);
@@ -89,6 +88,7 @@ void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart) 
 }
 
 int main(int argc, char *argv[]) {
+  bool rflag = false;
   int opt;
 
   opterr = 0;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color);
-  drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
+  drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
   
   clock_t lastClock = clock();
   while (1) {
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
       erase(); // 画面消去
       refreshField();
       updateBlock(target.type.color);
-      drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
+      drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
       refresh(); // 画面再描画
     }
 
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 
     updateBlock(target.type.color);
 
-    drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart);
+    drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
 
     refresh(); // 画面再描画
   }
