@@ -615,19 +615,19 @@ void deleteAlign(int dy, int **ap) {
     ap[dy][x] = VOID;
   }
 
-  // int TMP_FIELD[dy][FIELD_WIDTH];
+  int tp[dy][FIELD_WIDTH];
 
   for (int y = 0; y < dy; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
-      ap[y + 1][x] = ap[y][x];
+      tp[y][x] = ap[y][x];
     }
   }
 
-  // for (int y = 0; y < dy; y++) {
-  //   for (int x = 0; x < FIELD_WIDTH; x++) {
-  //     ap[y + 1][x] = TMP_FIELD[y][x];
-  //   }
-  // }
+  for (int y = 0; y < dy; y++) {
+    for (int x = 0; x < FIELD_WIDTH; x++) {
+      ap[y + 1][x] = tp[y][x];
+    }
+  }
 }
 
 bool checkGameover(int **ap) {
