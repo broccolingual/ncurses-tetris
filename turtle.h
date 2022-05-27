@@ -27,6 +27,7 @@ int loadHighestScore();
 void updateHighestScore(int currentScore);
 
 // utils.c
+bool checkWindowSize(int x, int y);
 void timeToStr(char *strTime, time_t timeStart);
 void initColorHex(int n, const char *cc);
 

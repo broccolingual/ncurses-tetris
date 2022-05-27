@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 
 #include <ncurses.h>
+
+bool checkWindowSize(int x, int y) {
+    if (x >= 60 && y >= 30) return true;
+    return false;
+}
 
 void timeToStr(char *strTime, time_t timeStart) {
     char min[3]; char sec[3];

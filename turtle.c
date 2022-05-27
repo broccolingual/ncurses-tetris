@@ -109,6 +109,14 @@ int main(int argc, char *argv[]) {
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
+
+  // windowサイズチェック
+  if (!checkWindowSize(w, h)) {
+    endwin();
+    fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h);
+    return 1;
+  }
+  
   cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
@@ -259,7 +267,8 @@ int main(int argc, char *argv[]) {
 
     refresh(); // 画面再描画
   }
-
+　
+  // ゲームオーバー処理
   if (isGameover) {
     erase(); // 画面消去
     drawGameover(cx, cy);
