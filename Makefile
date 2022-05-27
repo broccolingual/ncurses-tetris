@@ -1,11 +1,11 @@
 CC = gcc
 CFLAG = -c -Wall
 
-tetris: tetris.o init.o random.o score.o utils.o
-	$(CC) -o tetris tetris.o init.o random.o score.o utils.o -lncurses
+turtle: turtle.o init.o random.o score.o utils.o
+	$(CC) -o turtle turtle.o init.o random.o score.o utils.o -lncurses
 
-tetris.o: tetris.c tetris.h block.h field.h
-	$(CC) $(CFLAG) tetris.c
+turtle.o: turtle.c turtle.h block.h field.h
+	$(CC) $(CFLAG) turtle.c
 
 init.o: init.c
 	$(CC) $(CFLAG) init.c

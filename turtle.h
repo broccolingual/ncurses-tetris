@@ -39,6 +39,7 @@ void drawInst(int cx, int cy, bool rflag);
 void drawScore(int cx, int cy, int maxScore);
 void drawLineScore(int cx, int cy);
 void drawLevel(int cx, int cy);
+void drawTitle(int cx, int cy);
 void drawGameover(int cx, int cy);
 void drawField(int cx, int cy);
 void refreshField();

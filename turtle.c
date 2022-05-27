@@ -8,7 +8,7 @@
 
 #include <ncurses.h>
 
-#include "tetris.h"
+#include "turtle.h"
 #include "block.h"
 #include "field.h"
 
@@ -112,11 +112,22 @@ int main(int argc, char *argv[]) {
   cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
 	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
+  int key = getch(); // キー入力
   int maxScore = loadHighestScore();
   bool isGameover = false;
   bool dropDelay = false;
   clock_t lastDelayClock;
   time_t elapsedTimeStart = time(NULL);
+
+  while (1) {
+    key = getch();
+    if (key == 'q') { endwin(); return 0; }
+    if (key == 's') break;
+
+    erase(); // 画面消去
+    drawTitle(cx, cy);
+    refresh(); // 画面再描画
+  }
 
   makeField(); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
@@ -159,7 +170,7 @@ int main(int argc, char *argv[]) {
       refresh(); // 画面再描画
     }
 
-    int key = getch(); // キー入力
+    key = getch();
 
     // ゲームの終了
     if (key == 'q') {
@@ -371,6 +382,13 @@ void drawInst(int cx, int cy, bool rflag) {
     mvprintw(cy + 16, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "DOWN : SOFT DROP");
     mvprintw(cy + 17, cx + (FIELD_WIDTH * WIDTH_RATIO) + 4, "Q    : EXIT");
   }
+}
+
+void drawTitle(int cx, int cy) {
+  attrset(COLOR_PAIR(STRING_C));
+  mvprintw(cy, cx + 3, "T U R T L E");
+  mvprintw(cy + 6, cx + 4, "S : START");
+  mvprintw(cy + 7, cx + 4, "Q : EXIT");
 }
 
 void drawGameover(int cx, int cy) {

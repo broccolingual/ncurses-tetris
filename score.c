@@ -9,7 +9,10 @@ int loadHighestScore() {
   int maxScore = 0;
 
   FILE *fp = fopen(SCORE_FILE, "r");
-  if (fp == NULL) return 0;
+  if (fp == NULL) {
+    fprintf(stderr, "score.txtがありません。");
+    return -1;
+  }
   if (fgets(lastScore, LINE_MAX, fp) != NULL) {
     maxScore = atoi(lastScore);
   }
@@ -20,7 +23,10 @@ int loadHighestScore() {
 void updateHighestScore(int currentScore) {
   if (loadHighestScore() < currentScore) {
     FILE *fp = fopen(SCORE_FILE, "w");
-    if (fp == NULL) return;
+    if (fp == NULL) {
+      fprintf(stderr, "score.txtがありません。ハイスコアは保存されません。");
+      return;
+    }
     fprintf(fp, "%d\n", currentScore);
     fclose(fp);
   }
