@@ -20,4 +20,4 @@ utils.o: utils.c
 	$(CC) $(CFLAG) utils.c
 
 clean:
-	rm *.o
+	rm *.o turtle.exe
