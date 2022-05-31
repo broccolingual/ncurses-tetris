@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     refresh(); // 画面再描画
   }
 
-  // TEST
+  // フィールドのメモリ領域確保
   FIELD = malloc(sizeof(int *) * FIELD_HEIGHT);
   for (int i = 0; i < FIELD_HEIGHT; i++) {
     FIELD[i] = malloc(sizeof(int) * FIELD_WIDTH);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  // TEST
+  // フィールドのメモリ領域開放
   for(int i = 0; i < FIELD_HEIGHT; i++) {
 		free(FIELD[i]);
 	}
