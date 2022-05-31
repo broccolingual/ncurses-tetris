@@ -3,7 +3,8 @@
 
 #include <ncurses.h>
 
-void initColorHex(int n, const char *cc);
+#include "init.h"
+#include "utils.h"
 
 void initWindow() {
   initscr(); // 端末の初期化

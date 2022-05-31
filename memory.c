@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "memory.h"
+
 int **mallocFieldAllocation(int w, int h) {
     int **ap;
     ap = malloc(sizeof(int *) * h);

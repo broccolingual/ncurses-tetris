@@ -1,0 +1,2 @@
+void initWindow();
+void initColors();

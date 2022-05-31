@@ -11,6 +11,13 @@
 #include "turtle.h"
 #include "block.h"
 #include "field.h"
+#include "init.h"
+#include "memory.h"
+#include "random.h"
+#include "score.h"
+#include "utils.h"
+
+
 
 // テトリミノの定義
 BLOCK BLOCKS[BLOCK_MAX + 1] = {

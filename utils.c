@@ -6,6 +6,8 @@
 
 #include <ncurses.h>
 
+#include "utils.h"
+
 bool checkWindowSize(int x, int y) {
     if (x >= 60 && y >= 30) return true;
     return false;

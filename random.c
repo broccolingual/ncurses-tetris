@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "block.h"
+#include "random.h"
 
 int BLOCK_LIST[BLOCK_MAX] = {BLOCK_I, BLOCK_O, BLOCK_S, BLOCK_Z, BLOCK_J, BLOCK_L, BLOCK_T};
 int RANDOM_BLOCK_INDEX = 0;
