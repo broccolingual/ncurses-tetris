@@ -317,7 +317,7 @@ void drawScore(int cx, int cy, int maxScore) {
 }
 
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
-  char strTime[6];
+  char strTime[9];
   timeToStr(strTime, timeStart);
 
   attrset(COLOR_PAIR(STRING_C));

@@ -14,13 +14,14 @@ bool checkWindowSize(int x, int y) {
 }
 
 void timeToStr(char *strTime, time_t timeStart) {
-    char min[3]; char sec[3];
+    char hour[3], min[3], sec[3];
 
-    sprintf(min, "%02d", ((int) difftime(time(NULL), timeStart)) / 60);
-    sprintf(sec, "%02d", ((int) difftime(time(NULL), timeStart)) % 60);
-    strcpy(strTime, min);
-    strcat(strTime, ":");
-    strcat(strTime, sec);
+    sprintf(hour, "%02d", (((int) difftime(time(NULL), timeStart)) / 3600) % 3600);
+    sprintf(min, "%02d", (((int) difftime(time(NULL), timeStart)) / 60) % 60);
+    sprintf(sec, "%02d", (((int) difftime(time(NULL), timeStart)) % 60));
+    strcpy(strTime, hour);
+    strcat(strTime, ":"); strcat(strTime, min);
+    strcat(strTime, ":"); strcat(strTime, sec);
 }
 
 void initColorHex(int n, const char *cc) {
