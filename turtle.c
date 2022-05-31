@@ -422,7 +422,7 @@ void drawField(int cx, int cy, int **ap) {
       }
       
       attrset(COLOR_PAIR(colorCode));
-      mvprintw(cy + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
+      mvprintw(cy - 2 + y * HEIGHT_RATIO, cx + x * WIDTH_RATIO, "  ");
     }
   }
 }
@@ -622,7 +622,7 @@ void deleteAlign(int dy, int **ap) {
 
 bool checkGameover(int **ap) {
   for (int x = 0; x < FIELD_WIDTH; x++) {
-    if (ap[0][x] > 10) return true;
+    if (ap[2][x] > 10) return true;
   }
   return false;
 }
