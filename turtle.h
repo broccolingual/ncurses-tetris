@@ -35,8 +35,9 @@ void initColorHex(int n, const char *cc);
 int **mallocFieldAllocation(int w, int h);
 void freeFieldAllocation(int **ap, int h);
 
+// turtle.c
 void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *next, time_t timeStart, bool rflag);
-void makeField(int **ap);
+void initField(int **ap);
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);
 void drawNext(int cx, int cy, TARGET *np);

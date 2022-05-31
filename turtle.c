@@ -125,6 +125,7 @@ int main(int argc, char *argv[]) {
   time_t elapsedTimeStart = time(NULL);
   int **FIELD = NULL; // フィールド配列のポインタ
 
+  // タイトル画面
   while (1) {
     key = getch();
     if (key == 'q') { endwin(); return 0; }
@@ -137,7 +138,7 @@ int main(int argc, char *argv[]) {
 
   FIELD = mallocFieldAllocation(FIELD_WIDTH, FIELD_HEIGHT); // フィールドのメモリ領域確保
 
-  makeField(FIELD); // フィールドの初期化
+  initField(FIELD); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color, FIELD);
@@ -283,7 +284,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void makeField(int **ap) {
+void initField(int **ap) {
   for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       ap[y][x] = VOID;
@@ -450,22 +451,15 @@ bool canMove(int dx, int dy, TARGET *tp, int **ap) {
 }
 
 void moveDOWN(TARGET *tp, int **ap) {
-  if (canMove(0, 1, tp, ap)) {
-    tp->p.y++;
-    SCORE += 2;
-  }
+  if (canMove(0, 1, tp, ap)) { tp->p.y++; SCORE += 2; }
 }
 
 void moveRIGHT(TARGET *tp, int **ap) {
-  if (canMove(1, 0, tp, ap)) {
-    tp->p.x++;
-  }
+  if (canMove(1, 0, tp, ap)) tp->p.x++;
 }
 
 void moveLEFT(TARGET *tp, int **ap) {
-  if (canMove(-1, 0, tp, ap)) {
-    tp->p.x--;
-  }
+  if (canMove(-1, 0, tp, ap)) tp->p.x--;
 }
 
 bool canRotateRight(TARGET *tp, int **ap) {
@@ -605,7 +599,7 @@ void deleteAlign(int dy, int **ap) {
     ap[dy][x] = VOID;
   }
 
-  int tp[dy][FIELD_WIDTH];
+  int tp[dy][FIELD_WIDTH]; // コピー用配列
 
   for (int y = 0; y < dy; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
@@ -622,7 +616,7 @@ void deleteAlign(int dy, int **ap) {
 
 bool checkGameover(int **ap) {
   for (int x = 0; x < FIELD_WIDTH; x++) {
-    if (ap[2][x] > 10) return true;
+    if (ap[FIELD_MARGIN][x] > 10) return true;
   }
   return false;
 }
