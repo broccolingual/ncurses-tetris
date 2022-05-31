@@ -68,14 +68,13 @@ int LINE_SCORE = 0; // ライン消しをした回数
 int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
 double INTERVAL = 0.5; // 秒/1ブロック落下
 double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
-int **FIELD = NULL; // フィールド配列のポインタ
 int SKIP_COUNT = 5; // 現在利用できるスキップの回数
 
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *np, time_t timeStart, bool rflag) {
-  drawField(cx, cy);
+void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *np, time_t timeStart, bool rflag) {
+  drawField(cx, cy, ap);
   drawScore(cx, cy, maxScore);
   drawInst(cx, cy, rflag);
   drawNext(cx, cy, np);
@@ -124,6 +123,7 @@ int main(int argc, char *argv[]) {
   bool dropDelay = false;
   clock_t lastDelayClock;
   time_t elapsedTimeStart = time(NULL);
+  int **FIELD = NULL; // フィールド配列のポインタ
 
   while (1) {
     key = getch();
@@ -135,17 +135,13 @@ int main(int argc, char *argv[]) {
     refresh(); // 画面再描画
   }
 
-  // フィールドのメモリ領域確保
-  FIELD = malloc(sizeof(int *) * FIELD_HEIGHT);
-  for (int i = 0; i < FIELD_HEIGHT; i++) {
-    FIELD[i] = malloc(sizeof(int) * FIELD_WIDTH);
-  }
+  FIELD = mallocFieldAllocation(FIELD_WIDTH, FIELD_HEIGHT); // フィールドのメモリ領域確保
 
   makeField(FIELD); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color, FIELD);
-  drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
+  drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
   
   clock_t lastClock = clock();
   while (1) {
@@ -174,7 +170,7 @@ int main(int argc, char *argv[]) {
       erase(); // 画面消去
       refreshField(FIELD);
       updateBlock(target.type.color, FIELD);
-      drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
+      drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
       refresh(); // 画面再描画
     }
 
@@ -263,7 +259,7 @@ int main(int argc, char *argv[]) {
 
     updateBlock(target.type.color, FIELD);
 
-    drawGameWindow(cx, cy, maxScore, &next, elapsedTimeStart, rflag);
+    drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
 
     refresh(); // 画面再描画
   }
@@ -282,14 +278,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  // フィールドのメモリ領域開放
-  for(int i = 0; i < FIELD_HEIGHT; i++) {
-		free(FIELD[i]);
-	}
-	free(FIELD);
-
+  freeFieldAllocation(FIELD, FIELD_HEIGHT); // フィールドのメモリ領域開放
 	endwin(); // スクリーンの終了
-
   return 0;
 }
 
@@ -420,15 +410,15 @@ void drawGameover(int cx, int cy) {
   mvprintw(cy + 6, cx + 6, "Q : EXIT");
 }
 
-void drawField(int cx, int cy) {
+void drawField(int cx, int cy, int **ap) {
   for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       int colorCode;
 
-      if (FIELD[y][x] > 10) {
-        colorCode = FIELD[y][x] - 10;
+      if (ap[y][x] > 10) {
+        colorCode = ap[y][x] - 10;
       } else {
-        colorCode = FIELD[y][x];
+        colorCode = ap[y][x];
       }
       
       attrset(COLOR_PAIR(colorCode));

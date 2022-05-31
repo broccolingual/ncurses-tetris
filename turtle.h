@@ -31,7 +31,11 @@ bool checkWindowSize(int x, int y);
 void timeToStr(char *strTime, time_t timeStart);
 void initColorHex(int n, const char *cc);
 
-void drawGameWindow(int cx, int cy, int maxScore, TARGET *next, time_t timeStart, bool rflag);
+// memory.c
+int **mallocFieldAllocation(int w, int h);
+void freeFieldAllocation(int **ap, int h);
+
+void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *next, time_t timeStart, bool rflag);
 void makeField(int **ap);
 void drawSkip(int cx, int cy);
 void drawElapsedTime(int cx, int cy, time_t timeStart);
@@ -42,7 +46,7 @@ void drawLineScore(int cx, int cy);
 void drawLevel(int cx, int cy);
 void drawTitle(int cx, int cy);
 void drawGameover(int cx, int cy);
-void drawField(int cx, int cy);
+void drawField(int cx, int cy, int **ap);
 void refreshField(int **ap);
 BLOCK rotateBlockRight(TARGET *tp, int **ap);
 BLOCK rotateBlockLeft(TARGET *tp, int **ap);
