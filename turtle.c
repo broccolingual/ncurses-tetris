@@ -17,8 +17,6 @@
 #include "score.h"
 #include "utils.h"
 
-
-
 // テトリミノの定義
 BLOCK BLOCKS[BLOCK_MAX + 1] = {
   // BLOCK_NULL
@@ -80,32 +78,49 @@ int SKIP_COUNT = 5; // 現在利用できるスキップの回数
 TARGET target; // 現在操作しているブロックのデータ
 TARGET next; // 次に操作するブロックのデータ
 
-void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *np, time_t timeStart, bool rflag) {
+void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *np, time_t timeStart, bool rflag, int score, int level, int lineScore, int skipCount) {
   drawField(cx, cy, ap);
-  drawScore(cx, cy, maxScore);
+  drawScore(cx, cy, score, maxScore);
   drawInst(cx, cy, rflag);
   drawNext(cx, cy, np);
   drawElapsedTime(cx, cy, timeStart);
-  drawSkip(cx, cy);
-  drawLineScore(cx, cy);
-  drawLevel(cx, cy);
+  drawSkip(cx, cy, skipCount);
+  drawLineScore(cx, cy, lineScore);
+  drawLevel(cx, cy, level);
 }
 
-int main(int argc, char *argv[]) {
-  bool rflag = false;
+bool getReverseOption(int argc, char *argv[]) {
   int opt;
 
   opterr = 0;
   while ((opt = getopt(argc, argv, "r")) != -1) {
     switch (opt) {
     case 'r':
-      rflag = true;
+      return true;
       break;
     default:
       fprintf(stderr, "コマンドのオプションが違います。-%c\n", optopt);
-      return 1;
+      exit(1);
     }
   }
+  return false;
+}
+
+bool titleLoop(int cx, int cy) {
+  erase(); // 画面消去
+  drawTitle(cx, cy);
+  refresh(); // 画面再描画
+
+  while (1) {
+    int key = getch();
+    if (key == 'q') return false;
+    if (key == 's') return true;
+  }
+}
+
+int main(int argc, char *argv[]) {
+  bool rflag = false;
+  rflag = getReverseOption(argc, argv);
 
   generateRandomSeed(); // ランダムシードの生成
   initWindow(); // windowの初期設定
@@ -113,6 +128,7 @@ int main(int argc, char *argv[]) {
 
   int cx, cy, w, h;
   getmaxyx(stdscr, h, w); // 画面幅の取得
+  getWindowCenter(&cx, &cy, w, h);
 
   // windowサイズチェック
   if (!checkWindowSize(w, h)) {
@@ -120,11 +136,13 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h);
     return 1;
   }
-  
-  cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2; // 縦座標の中心を計算
-	cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2; // 横座標の中心を計算
 
-  int key = getch(); // キー入力
+  // タイトル画面
+  if(!titleLoop(cx, cy)) {
+    endwin(); return 0;
+  }
+
+  int key;
   int maxScore = loadHighestScore();
   bool isGameover = false;
   bool dropDelay = false;
@@ -132,24 +150,13 @@ int main(int argc, char *argv[]) {
   time_t elapsedTimeStart = time(NULL);
   int **FIELD = NULL; // フィールド配列のポインタ
 
-  // タイトル画面
-  while (1) {
-    key = getch();
-    if (key == 'q') { endwin(); return 0; }
-    if (key == 's') break;
-
-    erase(); // 画面消去
-    drawTitle(cx, cy);
-    refresh(); // 画面再描画
-  }
-
   FIELD = mallocFieldAllocation(FIELD_WIDTH, FIELD_HEIGHT); // フィールドのメモリ領域確保
 
   initField(FIELD); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
   updateBlock(target.type.color, FIELD);
-  drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
+  drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
   
   clock_t lastClock = clock();
   while (1) {
@@ -178,7 +185,7 @@ int main(int argc, char *argv[]) {
       erase(); // 画面消去
       refreshField(FIELD);
       updateBlock(target.type.color, FIELD);
-      drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
+      drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
       refresh(); // 画面再描画
     }
 
@@ -235,16 +242,11 @@ int main(int argc, char *argv[]) {
         }
         break;
       case 'c':
-        if (SKIP_COUNT > 0) {
-          SKIP_COUNT--;
-          target = next;
-          setBlock(&next);
-        }
+        useSkip(&target, &next, &SKIP_COUNT);
         break;
     }
 
     erase(); // 画面消去
-
     refreshField(FIELD);
 
     // 接触判定
@@ -259,16 +261,14 @@ int main(int argc, char *argv[]) {
         dropDelay = false;
 
         updateBlock(target.type.color + 10, FIELD);
-        searchAlign(FIELD);
+        searchAlign(FIELD, &SCORE, &LEVEL, &LINE_SCORE);
         target = next;
         setBlock(&next);
       }
     }
 
     updateBlock(target.type.color, FIELD);
-
-    drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag);
-
+    drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
     refresh(); // 画面再描画
   }
 
@@ -279,16 +279,19 @@ int main(int argc, char *argv[]) {
     refresh(); // 画面再描画
 
     while (1) {
-      if (getch() == 'q') {
-        updateHighestScore(SCORE);
-        break;
-      }
+      if (getch() == 'q') break;
     }
   }
 
   freeFieldAllocation(FIELD, FIELD_HEIGHT); // フィールドのメモリ領域開放
+  updateHighestScore(SCORE);
 	endwin(); // スクリーンの終了
   return 0;
+}
+
+void getWindowCenter(int *cx, int *cy, int w, int h) {
+  *cy = (h - (FIELD_HEIGHT) * HEIGHT_RATIO) / 2;
+	*cx = (w - FIELD_WIDTH * WIDTH_RATIO) / 2;
 }
 
 void initField(int **ap) {
@@ -299,9 +302,9 @@ void initField(int **ap) {
   }
 }
 
-void drawScore(int cx, int cy, int maxScore) {
+void drawScore(int cx, int cy, int score, int maxScore) {
   char highestScore[256];
-  char score[256]; 
+  char s[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
 
@@ -311,9 +314,9 @@ void drawScore(int cx, int cy, int maxScore) {
   mvprintw(cy + 1, cx - 14, highestScore);
   attrset(COLOR_PAIR(STRING_C));
   mvprintw(cy + 2, cx - 16, "| SCORE:");
-  sprintf(score, "%d", SCORE);
+  sprintf(s, "%d", score);
   attrset(COLOR_PAIR(STRONG_C));
-  mvprintw(cy + 3, cx - 14, score);
+  mvprintw(cy + 3, cx - 14, s);
 }
 
 void drawElapsedTime(int cx, int cy, time_t timeStart) {
@@ -327,26 +330,26 @@ void drawElapsedTime(int cx, int cy, time_t timeStart) {
   mvprintw(cy + 5, cx - 14, strTime);
 }
 
-void drawLineScore(int cx, int cy) {
-  char lineScore[256]; 
+void drawLineScore(int cx, int cy, int lineScore) {
+  char ls[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
 
   mvprintw(cy + 6, cx - 16, "| LINES:");
-  sprintf(lineScore, "%d", LINE_SCORE);
+  sprintf(ls, "%d", lineScore);
   attrset(COLOR_PAIR(STRONG_C));
-  mvprintw(cy + 7, cx - 14, lineScore);
+  mvprintw(cy + 7, cx - 14, ls);
 }
 
-void drawLevel(int cx, int cy) {
-  char level[256]; 
+void drawLevel(int cx, int cy, int level) {
+  char l[256]; 
 
   attrset(COLOR_PAIR(STRING_C));
 
   mvprintw(cy + 8, cx - 16, "| LEVEL:");
-  sprintf(level, "%d", LEVEL);
+  sprintf(l, "%d", level);
   attrset(COLOR_PAIR(STRONG_C));
-  mvprintw(cy + 9, cx - 14, level);
+  mvprintw(cy + 9, cx - 14, l);
 }
 
 void drawNext(int cx, int cy, TARGET *np) {
@@ -360,12 +363,12 @@ void drawNext(int cx, int cy, TARGET *np) {
   }
 }
 
-void drawSkip(int cx, int cy) {
+void drawSkip(int cx, int cy, int skipCount) {
   char skipLeft[16];
 
   attrset(COLOR_PAIR(STRING_C));
 
-  sprintf(skipLeft, "%d", SKIP_COUNT);
+  sprintf(skipLeft, "%d", skipCount);
   strcat(skipLeft, " / 5");
 
   mvprintw(cy + 6, cx + (FIELD_WIDTH * WIDTH_RATIO) + 2, "| SKIP:");
@@ -445,6 +448,14 @@ void refreshField(int **ap) {
   }
 }
 
+void useSkip(TARGET *cp, TARGET *np, int *skipCount) {
+  if (*skipCount > 0) {
+    *skipCount -= 1;
+    cp = np;
+    setBlock(np);
+  }
+}
+
 bool canMove(int dx, int dy, TARGET *tp, int **ap) {
   for (int i = 0; i < 4; i++) {
     int nx = tp->p.x + tp->type.p[i].x + dx;
@@ -458,7 +469,7 @@ bool canMove(int dx, int dy, TARGET *tp, int **ap) {
 }
 
 void moveDOWN(TARGET *tp, int **ap) {
-  if (canMove(0, 1, tp, ap)) { tp->p.y++; SCORE += 2; }
+  if (canMove(0, 1, tp, ap)) tp->p.y++;
 }
 
 void moveRIGHT(TARGET *tp, int **ap) {
@@ -571,32 +582,30 @@ bool changeBlockState(TARGET *tp, int **ap) {
   return false;
 }
 
-void searchAlign(int **ap) {
+void searchAlign(int **ap, int *score, int *level, int *lineScore) {
   int lineCount = 0;
 
   for (int y = 0; y < FIELD_HEIGHT; y++) {
     for (int x = 0; x < FIELD_WIDTH; x++) {
       if (ap[y][x] == VOID) break;
       if (x == FIELD_WIDTH - 1) {
-        lineCount++;
-        LINE_SCORE++;
-        deleteAlign(y, ap);
+        lineCount++; *lineScore += 1; deleteAlign(y, ap);
       }
     }
   }
 
   switch (lineCount) {
     case 1:
-      SCORE += LEVEL * 100;
+      *score += *level * 100;
       break;
     case 2:
-      SCORE += LEVEL * 300;
+      *score += *level * 300;
       break;
     case 3:
-      SCORE += LEVEL * 500;
+      *score += *level * 500;
       break;
     case 4:
-      SCORE += LEVEL * 800;
+      *score += *level * 800;
       break;
   }
 }
