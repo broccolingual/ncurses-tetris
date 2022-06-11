@@ -67,17 +67,6 @@ BLOCK BLOCKS[BLOCK_MAX + 1] = {
   }
 };
 
-int LEVEL = 1; // 現在のレベル
-int SCORE = 0; // 現在のスコア
-int LINE_SCORE = 0; // ライン消しをした回数
-int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
-double INTERVAL = 0.5; // 秒/1ブロック落下
-double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
-int SKIP_COUNT = 5; // 現在利用できるスキップの回数
-
-TARGET target; // 現在操作しているブロックのデータ
-TARGET next; // 次に操作するブロックのデータ
-
 void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *np, time_t timeStart, bool rflag, int score, int level, int lineScore, int skipCount) {
   drawField(cx, cy, ap);
   drawScore(cx, cy, score, maxScore);
@@ -106,72 +95,63 @@ bool getReverseOption(int argc, char *argv[]) {
   return false;
 }
 
-bool titleLoop(int cx, int cy) {
-  erase(); // 画面消去
-  drawTitle(cx, cy);
-  refresh(); // 画面再描画
-
+bool displayTitle(int cx, int cy) {
   while (1) {
-    int key = getch();
-    if (key == 'q') return false;
-    if (key == 's') return true;
+    erase();
+    drawTitle(cx, cy);
+    refresh();
+
+    switch (getch()) {
+      case 'q': return false; break;
+      case 's': return true; break;
+    }
   }
 }
 
-int main(int argc, char *argv[]) {
-  bool rflag = false;
-  rflag = getReverseOption(argc, argv);
+void displayGameover(int cx, int cy, int score) {
+  while (1) {
+    erase();
+    drawGameover(cx, cy, score);
+    refresh();
 
-  generateRandomSeed(); // ランダムシードの生成
-  initWindow(); // windowの初期設定
-  initColors(); // 色の設定
-
-  int cx, cy, w, h;
-  getmaxyx(stdscr, h, w); // 画面幅の取得
-  getWindowCenter(&cx, &cy, w, h);
-
-  // windowサイズチェック
-  if (!checkWindowSize(w, h)) {
-    endwin();
-    fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h);
-    return 1;
+    if (getch() == 'q') return;
   }
+}
 
-  // タイトル画面
-  if(!titleLoop(cx, cy)) {
-    endwin(); return 0;
-  }
+void gameLoop(int cx, int cy, bool rflag, bool *isGameover, int *score) {
+  int level = 1; // 現在のレベル
+  int lineScore = 0; // ライン消しをした回数
+  int DROP_COUNT = 0; // ブロックの落下処理が行われた回数
+  double INTERVAL = 0.5; // 秒/1ブロック落下
+  double GRACE_AFTER_FALLING = 0.5; // 落下後の猶予時間
+  int skipCount = 5; // 現在利用できるスキップの回数
 
-  int key;
+  TARGET target; // 現在操作しているブロックのデータ
+  TARGET next; // 次に操作するブロックのデータ
+
   int maxScore = loadHighestScore();
-  bool isGameover = false;
   bool dropDelay = false;
   clock_t lastDelayClock;
   time_t elapsedTimeStart = time(NULL);
-  int **FIELD = NULL; // フィールド配列のポインタ
-
-  FIELD = mallocFieldAllocation(FIELD_WIDTH, FIELD_HEIGHT); // フィールドのメモリ領域確保
+  int **FIELD = NULL;
+  FIELD = mallocFieldAllocation(FIELD_WIDTH, FIELD_HEIGHT);
 
   initField(FIELD); // フィールドの初期化
   setBlock(&target); // 操作ブロックを設定
   setBlock(&next); // 次のブロックを設定
-  updateBlock(target.type.color, FIELD);
-  drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
+  updateBlock(&target, FIELD, target.type.color);
+  drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, *score, level, lineScore, skipCount);
   
   clock_t lastClock = clock();
   while (1) {
-    // ゲームオーバー判定
-    if (checkGameover(FIELD)) {
-      isGameover = true;
-      break;
-    }
+    if (checkGameover(FIELD)) { *isGameover = true; return; }
 
     // 落下処理
     clock_t nowClock = clock();
     if (nowClock >= lastClock + (INTERVAL * CLOCKS_PER_SEC)) {
       lastClock = nowClock;
       moveDOWN(&target, FIELD);
-      SCORE++;
+      *score += 1;
 
       DROP_COUNT++;
       if (DROP_COUNT % 120 == 0 && INTERVAL >= 0.1) {
@@ -179,26 +159,18 @@ int main(int argc, char *argv[]) {
       }
 
       if (DROP_COUNT % 120 == 0) {
-        LEVEL++;
+        level++;
       }
 
-      erase(); // 画面消去
+      erase();
       refreshField(FIELD);
-      updateBlock(target.type.color, FIELD);
-      drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
-      refresh(); // 画面再描画
+      updateBlock(&target, FIELD, target.type.color);
+      drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, *score, level, lineScore, skipCount);
+      refresh();
+      continue;
     }
 
-    key = getch();
-
-    // ゲームの終了
-    if (key == 'q') {
-      updateHighestScore(SCORE);
-      break;
-    }
-
-    // テトリミノの操作
-    switch (key) {
+    switch (getch()) {
       case KEY_LEFT:
         if (rflag) {
           moveRIGHT(&target, FIELD);
@@ -242,11 +214,13 @@ int main(int argc, char *argv[]) {
         }
         break;
       case 'c':
-        useSkip(&target, &next, &SKIP_COUNT);
+        useSkip(&target, &next, &skipCount);
         break;
+      case 'q':
+        return;
     }
 
-    erase(); // 画面消去
+    erase();
     refreshField(FIELD);
 
     // 接触判定
@@ -260,32 +234,51 @@ int main(int argc, char *argv[]) {
       if (nowDelayClock >= lastDelayClock + (GRACE_AFTER_FALLING * CLOCKS_PER_SEC)) {
         dropDelay = false;
 
-        updateBlock(target.type.color + 10, FIELD);
-        searchAlign(FIELD, &SCORE, &LEVEL, &LINE_SCORE);
+        updateBlock(&target, FIELD, target.type.color + 10);
+        searchAlign(FIELD, score, &level, &lineScore);
         target = next;
         setBlock(&next);
       }
     }
 
-    updateBlock(target.type.color, FIELD);
-    drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, SCORE, LEVEL, LINE_SCORE, SKIP_COUNT);
-    refresh(); // 画面再描画
+    updateBlock(&target, FIELD, target.type.color);
+    drawGameWindow(cx, cy, FIELD, maxScore, &next, elapsedTimeStart, rflag, *score, level, lineScore, skipCount);
+    refresh();
   }
 
-  // ゲームオーバー処理
+  freeFieldAllocation(FIELD, FIELD_HEIGHT);
+  updateHighestScore(*score);
+}
+
+int main(int argc, char *argv[]) {
+  bool rflag = false;
+  bool endFlag = false;
+  bool isGameover = false;
+  int cx, cy, w, h;
+  int score = 0;
+
+  rflag = getReverseOption(argc, argv);
+
+  generateRandomSeed(); // ランダムシードの生成
+  initWindow(); // windowの初期設定
+  initColors(); // 色の設定
+
+  getmaxyx(stdscr, h, w); // 画面幅の取得
+  getWindowCenter(&cx, &cy, w, h);
+
+  if (!checkWindowSize(w, h)) endFlag = true;
+  // fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h);
+  if(!displayTitle(cx, cy)) endFlag = true;
+
+  if (!endFlag) {
+    gameLoop(cx, cy, rflag, &isGameover, &score);
+  }
+
   if (isGameover) {
-    erase(); // 画面消去
-    drawGameover(cx, cy);
-    refresh(); // 画面再描画
-
-    while (1) {
-      if (getch() == 'q') break;
-    }
+    displayGameover(cx, cy, score);
   }
 
-  freeFieldAllocation(FIELD, FIELD_HEIGHT); // フィールドのメモリ領域開放
-  updateHighestScore(SCORE);
-	endwin(); // スクリーンの終了
+	endwin();
   return 0;
 }
 
@@ -407,14 +400,14 @@ void drawTitle(int cx, int cy) {
   mvprintw(cy + 7, cx + 4, "Q : EXIT");
 }
 
-void drawGameover(int cx, int cy) {
+void drawGameover(int cx, int cy, int score) {
   char base[64] = "SCORE: ";
-  char score[32];
+  char s[32];
 
   attrset(COLOR_PAIR(STRING_C));
   mvprintw(cy, cx, "G A M E     O V E R ");
-  sprintf(score, "%d", SCORE);
-  strcat(base, score);
+  sprintf(s, "%d", score);
+  strcat(base, s);
   attrset(COLOR_PAIR(STRONG_C));
   mvprintw(cy + 2, cx + 5, base);
   attrset(COLOR_PAIR(STRING_C));
@@ -557,13 +550,10 @@ bool setBlock(TARGET *tp) {
   return true;
 }
 
-void updateBlock(int state, int **ap) {
-  int cx = target.p.x; int cy = target.p.y;
-  BLOCK block = target.type;
-
+void updateBlock(TARGET *tp, int **ap, int state) {
   for (int i = 0; i < 4; i++) {
-    int nx = cx + block.p[i].x;
-    int ny = cy + block.p[i].y;
+    int nx = tp->p.x + tp->type.p[i].x;
+    int ny = tp->p.y + tp->type.p[i].y;
 
     if (nx < FIELD_WIDTH && ny < FIELD_HEIGHT) ap[ny][nx] = state;
   }

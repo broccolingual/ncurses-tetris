@@ -13,13 +13,15 @@ typedef struct {
   POSITION p;
 } TARGET;
 
-bool titleLoop(int cx, int cy);
+void gameLoop(int cx, int cy, bool rflag, bool *isGameover, int *score);
+bool displayTitle(int cx, int cy);
+void displayGameover(int cx, int cy, int score);
 bool getReverseOption(int argc, char *argv[]);
 void getWindowCenter(int *cx, int *cy, int w, int h);
 void initField(int **ap);
 void refreshField(int **ap);
 bool setBlock(TARGET *tp);
-void updateBlock(int state, int **ap);
+void updateBlock(TARGET *tp, int **ap, int state);
 void useSkip(TARGET *cp, TARGET *np, int *skipCount);
 bool canMove(int dx, int dy, TARGET *tp, int **ap);
 void moveDOWN(TARGET *tp, int **ap);
@@ -42,6 +44,6 @@ void drawScore(int cx, int cy, int score, int maxScore);
 void drawLineScore(int cx, int cy, int lineScore);
 void drawLevel(int cx, int cy, int level);
 void drawTitle(int cx, int cy);
-void drawGameover(int cx, int cy);
+void drawGameover(int cx, int cy, int score);
 void drawField(int cx, int cy, int **ap);
 void drawGameWindow(int cx, int cy, int **ap, int maxScore, TARGET *next, time_t timeStart, bool rflag, int score, int level, int lineScore, int skipCount);
