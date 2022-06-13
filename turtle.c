@@ -299,7 +299,7 @@ void refreshField(int **ap) {
 void useSkip(TARGET *cp, TARGET *np, int *skipCount) {
   if (*skipCount > 0) {
     *skipCount -= 1;
-    cp = np;
+    *cp = *np;
     setBlock(np);
   }
 }
