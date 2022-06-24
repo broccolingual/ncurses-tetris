@@ -79,7 +79,7 @@ bool getReverseOption(int argc, char *argv[]) {
       return true;
       break;
     default:
-      fprintf(stderr, "コマンドのオプションが違います。-%c\n", optopt);
+      fprintf(stderr, "オプションが間違っています。-%c\n", optopt);
       exit(1);
     }
   }
@@ -208,8 +208,12 @@ int main(int argc, char *argv[]) {
   getmaxyx(stdscr, h, w); // 画面幅の取得
   getWindowCenter(&cx, &cy, w, h);
 
-  if (!checkWindowSize(w, h)) endFlag = true;
-  // fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h);
+  if (!checkWindowSize(w, h)) { 
+    endwin();
+    fprintf(stderr, "画面サイズを60 x 30以上にしてください。現在の画面サイズ : %d x %d\n", w, h); 
+    return 0;
+  }
+
   if(!displayTitle(cx, cy)) endFlag = true;
 
   if (!endFlag) {
