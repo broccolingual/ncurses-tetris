@@ -44,16 +44,24 @@ bool inputSwitcher(int **FIELD, TARGET *target, TARGET *next, bool rflag, int *s
       break;
     case 'x':
       if (rflag) {
-        target->type = rotateBlockLeft(target, FIELD);
+        if (target->p.y > 1) {
+          target->type = rotateBlockLeft(target, FIELD);
+        }
       } else {
-        target->type = rotateBlockRight(target, FIELD);
+        if (target->p.y > 1) {
+          target->type = rotateBlockRight(target, FIELD);
+        }
       }
       break;
     case 'z':
       if (rflag) {
-        target->type = rotateBlockRight(target, FIELD);
+        if (target->p.y > 1) {
+          target->type = rotateBlockRight(target, FIELD);
+        }
       } else {
-        target->type = rotateBlockLeft(target, FIELD);
+        if (target->p.y > 1) {
+          target->type = rotateBlockLeft(target, FIELD);
+        }
       }
       break;
     case 'c':
