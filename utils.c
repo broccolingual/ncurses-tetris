@@ -14,7 +14,7 @@ bool checkWindowSize(int x, int y) {
 }
 
 void timeToStr(char *strTime, time_t timeStart) {
-    char hour[3], min[3], sec[3];
+    char hour[4], min[4], sec[4];
 
     sprintf(hour, "%02d", (((int) difftime(time(NULL), timeStart)) / 3600) % 100);
     sprintf(min, "%02d", (((int) difftime(time(NULL), timeStart)) / 60) % 60);
